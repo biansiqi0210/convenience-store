@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#2a9488" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="新朋便利" />
+<link rel="manifest" href="xinpeng.webmanifest" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<title>新朋便利店</title>
+<style>
+  :root{
+    --green:#3fb6a8;
+    --green-d:#2a9488;
+    --bg:#eef7f4;
+    --card:#ffffff;
+    --text:#2f4f4a;
+    --muted:#6b8a83;
+    --line:#dcebe6;
+    --red:#e8736b;
+    --orange:#f2b35e;
+    --blue:#1989fa;
+    --radius:16px;
+    --shadow:0 6px 24px rgba(58,130,118,.10);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;
+    background:var(--bg);color:var(--text);
+    font-size:15px;line-height:1.5;
+    padding-bottom:env(safe-area-inset-bottom);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+  /* Header */
+  header{
+    position:sticky;top:0;z-index:20;
+    background:var(--green);color:#fff;
+    padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;
+    box-shadow:0 2px 10px rgba(63,182,168,.30);
+  }
+  header .top{display:flex;align-items:center;justify-content:space-between;}
+  header h1{font-size:18px;margin:0;font-weight:600;display:flex;align-items:center;gap:8px;}
+  header .stat{display:flex;gap:14px;margin-top:12px;}
+  header .stat .item{flex:1;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;}
+  header .stat .num{font-size:17px;font-weight:700;}
+  header .stat .lbl{font-size:11px;opacity:.9;}
+  .icon-btn{
+    background:rgba(255,255,255,.2);border:none;color:#fff;
+    width:38px;height:38px;border-radius:10px;font-size:18px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .add-btn{
+    background:linear-gradient(135deg,var(--green),var(--green-d));border:none;color:#fff;
+    width:40px;height:40px;border-radius:11px;font-size:20px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    box-shadow:0 3px 10px rgba(63,182,168,.45);
+  }
+  /* Search */
+  .search-wrap{padding:12px 16px 4px;}
+  .search{
+    display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;
+    padding:10px 14px;box-shadow:var(--shadow);
+  }
+  .search svg{flex:none;}
+  .search input{border:none;outline:none;flex:1;font-size:15px;background:transparent;color:var(--text);}
+  .search .clear{cursor:pointer;color:var(--muted);font-size:18px;display:none;}
+  /* Category chips */
+  .cats{padding:10px 16px 4px;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .cats::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:none;padding:6px 14px;border-radius:20px;background:#fff;border:1px solid var(--line);
+    font-size:13px;color:#555;cursor:pointer;white-space:nowrap;transition:.15s;
+  }
+  .chip.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600;}
+  .chip .cnt{opacity:.7;margin-left:4px;font-size:11px;}
+  /* List */
+  .list{padding:10px 16px 90px;flex:1;}
+  .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px;}
+  .empty .big{font-size:46px;margin-bottom:10px;}
+  .card{
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:12px;margin-bottom:12px;display:flex;gap:12px;position:relative;
+  }
+  .card .img{
+    width:74px;height:74px;border-radius:10px;object-fit:cover;flex:none;background:#f0f0f0;
+    display:flex;align-items:center;justify-content:center;color:#bbb;font-size:26px;overflow:hidden;
+  }
+  .card .img img{width:100%;height:100%;object-fit:cover;}
+  .card .info{flex:1;min-width:0;}
+  .card .name{font-weight:600;font-size:16px;display:flex;align-items:center;gap:6px;}
+  .card .cat-tag{font-size:11px;color:var(--green);background:rgba(63,182,168,.14);padding:1px 7px;border-radius:8px;font-weight:500;}
+  .card .prices{display:flex;gap:14px;margin-top:6px;font-size:13px;}
+  .card .prices .sale{color:var(--red);font-weight:700;font-size:15px;}
+  .card .prices .cost{color:var(--muted);}
+  .card .prices .profit{color:var(--blue);}
+  .card .dates{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;}
+  .card .exp{
+    margin-top:6px;font-size:12px;font-weight:600;display:inline-block;padding:2px 8px;border-radius:8px;
+  }
+  .exp.ok{background:rgba(63,182,168,.16);color:var(--green-d);}
+  .exp.warn{background:rgba(255,151,106,.15);color:var(--orange);}
+  .exp.danger{background:rgba(229,77,66,.12);color:var(--red);}
+  .card .acts{position:absolute;top:10px;right:10px;display:flex;gap:6px;}
+  .card .acts button{border:none;background:#f5f5f5;width:30px;height:30px;border-radius:8px;font-size:14px;cursor:pointer;color:#666;}
+  /* FAB */
+  .fab{
+    position:fixed;left:50%;transform:translateX(-50%);
+    bottom:calc(env(safe-area-inset-bottom) + 18px);
+    background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;border:none;border-radius:30px;
+    padding:14px 26px;font-size:16px;font-weight:600;box-shadow:0 8px 22px rgba(63,182,168,.45);
+    cursor:pointer;z-index:30;display:flex;align-items:center;gap:8px;
+    max-width:calc(100% - 32px);
+  }
+  /* Sheet / Modal */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:none;opacity:0;transition:.2s;}
+  .mask.show{display:block;opacity:1;}
+  .sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:50;
+    background:#fff;border-radius:18px 18px 0 0;max-width:560px;margin:0 auto;
+    transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);
+    max-height:92vh;display:flex;flex-direction:column;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .sheet.show{transform:translateY(0);}
+  .sheet .handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 4px;}
+  .sheet h2{margin:4px 18px 10px;font-size:17px;font-weight:600;}
+  .sheet .body{overflow-y:auto;padding:4px 18px 8px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;color:#555;margin-bottom:6px;font-weight:500;}
+  .field input,.field select{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;
+    font-size:15px;outline:none;background:#fafafa;color:var(--text);
+  }
+  .field input:focus,.field select:focus{border-color:var(--green);background:#fff;}
+  .field .row{display:flex;gap:10px;}
+  .field .row > *{flex:1;}
+  .img-pick{
+    display:flex;align-items:center;gap:12px;
+  }
+  .img-pick .preview{
+    width:64px;height:64px;border-radius:10px;background:#f0f0f0;overflow:hidden;flex:none;
+    display:flex;align-items:center;justify-content:center;color:#bbb;font-size:24px;border:1px dashed #ddd;
+  }
+  .img-pick .preview img{width:100%;height:100%;object-fit:cover;}
+  .img-pick .btn{border:1px solid var(--green);color:var(--green);background:#fff;border-radius:10px;padding:9px 14px;font-size:14px;cursor:pointer;}
+  .sheet .foot{padding:12px 18px;display:flex;gap:12px;border-top:1px solid var(--line);}
+  .sheet .foot button{flex:1;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:600;cursor:pointer;}
+  .btn-cancel{background:#f2f3f5;color:#555;}
+  .btn-save{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;}
+  .btn-del{background:#fff;color:var(--red);border:1px solid #f5c6c2 !important;}
+  /* toast */
+  .toast{
+    position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);
+    background:rgba(0,0,0,.8);color:#fff;padding:10px 18px;border-radius:10px;
+    font-size:14px;z-index:100;opacity:0;transition:.2s;pointer-events:none;max-width:80%;
+  }
+  .toast.show{opacity:1;}
+</style>
+<script src="https://beacon.cdn.qq.com/sdk/4.5.9/beacon_web.min.js"></script>
+<script>
+(function(){
+  try{
+    var beacon=new BeaconAction({
+      appkey:'0WEB06U85YBSLJNL',
+      versionCode:'1.0.0',
+      channelID:'share',
+      delay:1000,
+      sessionDuration:30*60*1000,
+      isOversea:false,
+      needReportRqdEvent:false
+    });
+    beacon.onDirectUserAction('preview_page_view',{
+      'url':location.href,
+      'referrer':document.referrer,
+      'title':document.title,
+      'sandbox_id':'1f2d955288504e6ca973af973be8a1d1'
+    });
+  }catch(e){}
+})();
+</script></head>
+<body>
+<div class="app">
+  <header>
+    <div class="top">
+      <h1>🛒 新朋便利店</h1>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="add-btn" id="hdrAddBtn" title="添加商品">＋</button>
+        <button class="icon-btn" id="catBtn" title="分类管理">⚙️</button>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="item"><div class="num" id="statCount">0</div><div class="lbl">商品总数</div></div>
+      <div class="item"><div class="num" id="statValue">¥0</div><div class="lbl">库存货值</div></div>
+      <div class="item" id="statExpBox" style="cursor:pointer;"><div class="num" id="statExp">0</div><div class="lbl">临期/过期 ⇩</div></div>
+    </div>
+  </header>
+
+  <div class="search-wrap">
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <input id="search" placeholder="搜索商品名称 / 分类…" />
+      <span class="clear" id="clearSearch">✕</span>
+    </div>
+  </div>
+
+  <div class="cats" id="cats"></div>
+
+  <div class="list" id="list"></div>
+</div>
+
+<button class="fab" id="addBtn">＋ 添加商品</button>
+
+<!-- Add / Edit Sheet -->
+<div class="mask" id="mask"></div>
+<div class="sheet" id="sheet">
+  <div class="handle"></div>
+  <h2 id="sheetTitle">添加商品</h2>
+  <div class="body">
+    <div class="field">
+      <label>商品名称 *</label>
+      <input id="f_name" placeholder="如：伊利纯牛奶 250ml" />
+    </div>
+    <div class="field">
+      <label>分类 *</label>
+      <select id="f_cat"></select>
+    </div>
+    <div class="field">
+      <label>商品图片</label>
+      <div class="img-pick">
+        <div class="preview" id="imgPrev">📷</div>
+        <button type="button" class="btn" id="pickImg">选择图片</button>
+        <input type="file" id="fileInput" accept="image/*" style="display:none" />
+      </div>
+    </div>
+    <div class="field">
+      <label>售价（元）*</label>
+      <input id="f_sale" type="number" inputmode="decimal" placeholder="0.00" />
+    </div>
+    <div class="field">
+      <label>进价（元）</label>
+      <input id="f_cost" type="number" inputmode="decimal" placeholder="0.00" />
+    </div>
+    <div class="field">
+      <label>自定义价格（可选，如会员价 / 促销价）</label>
+      <input id="f_custom" type="number" inputmode="decimal" placeholder="0.00" />
+    </div>
+    <div class="field">
+      <label>生产日期</label>
+      <input id="f_prod" type="date" />
+    </div>
+    <div class="field">
+      <label>保质期</label>
+      <div class="row">
+        <input id="f_shelf_val" type="number" inputmode="numeric" placeholder="如 30" min="0" />
+        <select id="f_shelf_unit" style="flex:none;width:96px;">
+          <option value="day">天</option>
+          <option value="month">个月</option>
+          <option value="year">年</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>到期时间 <span style="color:#2a9488;font-size:11px;font-weight:400;">（填写生产日期+保质期后自动生成，也可手动改）</span></label>
+      <input id="f_exp" type="date" />
+    </div>
+  </div>
+  <div class="foot">
+    <button class="btn-cancel" id="cancelBtn">取消</button>
+    <button class="btn-save" id="saveBtn">保存</button>
+  </div>
+</div>
+
+<!-- Category Manage Sheet -->
+<div class="mask" id="catMask"></div>
+<div class="sheet" id="catSheet">
+  <div class="handle"></div>
+  <h2>分类管理</h2>
+  <div class="body">
+    <div class="field">
+      <label>临期提醒阈值（天，可自定义）</label>
+      <div class="row">
+        <input id="f_warn" type="number" inputmode="numeric" min="1" placeholder="如 7" value="7" />
+        <button class="btn-save" style="flex:none;padding:11px 18px;border-radius:10px;" id="saveWarnBtn">保存</button>
+      </div>
+      <div style="font-size:12px;color:#8a8a8a;margin-top:6px;">剩余天数 ≤ 该值时，商品标记为「临期」（橙色）并自动排在前面；已过期标红。</div>
+    </div>
+    <div class="field">
+      <label>新增分类</label>
+      <div class="row">
+        <input id="newCat" placeholder="输入分类名称" />
+        <button class="btn-save" style="flex:none;padding:11px 18px;border-radius:10px;" id="addCatBtn">添加</button>
+      </div>
+    </div>
+    <div id="catList" style="display:flex;flex-wrap:wrap;gap:8px;padding-top:4px;"></div>
+  </div>
+  <div class="foot">
+    <button class="btn-cancel" id="catCancel">关闭</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY_PROD = "super_mart_products_v1";
+  var KEY_CAT  = "super_mart_categories_v2";
+  var KEY_SET  = "super_mart_settings_v1";
+  var settings = load(KEY_SET, {warnDays:7});
+  var WARN_DAYS = settings.warnDays || 7; // 临期阈值（天），可在设置中自定义
+
+  function load(k, def){ try{ return JSON.parse(localStorage.getItem(k)) || def; }catch(e){ return def; } }
+  function save(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+  var products = load(KEY_PROD, []);
+  var categories = load(KEY_CAT, ["饮料","面包","方便面","酒","烟","卫生用品","其他生活用品"]);
+
+  var state = { filterCat:"全部", keyword:"", editingId:null, imgData:null, editCat:null };
+
+  // ---------- helpers ----------
+  function $(id){ return document.getElementById(id); }
+  function toast(msg){
+    var t=$("toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove("show");},1400);
+  }
+  function fmtMoney(n){
+    n = Number(n)||0;
+    return "¥" + (n%1===0 ? n : n.toFixed(2));
+  }
+  function daysBetween(a,b){
+    if(!a||!b) return null;
+    var d1=new Date(a+"T00:00:00"), d2=new Date(b+"T00:00:00");
+    return Math.round((d2-d1)/86400000);
+  }
+  function todayStr(){
+    var d=new Date(); var m=("0"+(d.getMonth()+1)).slice(-2), day=("0"+d.getDate()).slice(-2);
+    return d.getFullYear()+"-"+m+"-"+day;
+  }
+  function expStatus(exp){
+    if(!exp) return {cls:"ok",txt:"未设置到期"};
+    var d = daysBetween(todayStr(), exp);
+    if(d<0) return {cls:"danger",txt:"已过期 "+Math.abs(d)+" 天"};
+    if(d===0) return {cls:"danger",txt:"今天到期"};
+    if(d<=WARN_DAYS) return {cls:"warn",txt:"临期 "+d+" 天"};
+    return {cls:"ok",txt:"剩余 "+d+" 天"};
+  }
+
+  // 由生产日期 + 保质期 自动计算到期时间
+  function computeExpiration(prod, val, unit){
+    if(!prod || !val || !unit) return "";
+    var d = new Date(prod+"T00:00:00");
+    val = Number(val);
+    if(unit==="day") d.setDate(d.getDate()+val);
+    else if(unit==="month") d.setMonth(d.getMonth()+val);
+    else if(unit==="year") d.setFullYear(d.getFullYear()+val);
+    var m=("0"+(d.getMonth()+1)).slice(-2), day=("0"+d.getDate()).slice(-2);
+    return d.getFullYear()+"-"+m+"-"+day;
+  }
+  function autoFillExpiration(){
+    var prod=$("f_prod").value, val=$("f_shelf_val").value, unit=$("f_shelf_unit").value;
+    if(prod && val && unit){
+      $("f_exp").value = computeExpiration(prod, val, unit);
+    }
+  }
+  var SHELF_LABEL = {day:"天", month:"个月", year:"年"};
+
+  // ---------- render ----------
+  function renderCats(){
+    var box=$("cats"); box.innerHTML="";
+    var all=["全部"].concat(categories);
+    all.forEach(function(c){
+      var cnt = c==="全部" ? products.length : products.filter(function(p){return p.category===c;}).length;
+      var el=document.createElement("div");
+      el.className="chip"+(state.filterCat===c?" active":"");
+      el.innerHTML = c + '<span class="cnt">'+cnt+'</span>';
+      el.onclick=function(){ state.filterCat=c; renderCats(); renderList(); };
+      box.appendChild(el);
+    });
+    // 仅看临期 专用筛选
+    var expCnt = products.filter(function(p){ return expStatus(p.expirationDate).cls!=="ok"; }).length;
+    var ec=document.createElement("div");
+    ec.className="chip"+(state.onlyExp?" active":"");
+    ec.style.cssText="background:"+(state.onlyExp?"#e54d42":"#fff")+";color:"+(state.onlyExp?"#fff":"#e54d42")+";border-color:"+(state.onlyExp?"#e54d42":"#f5c6c2")+";font-weight:600;";
+    ec.innerHTML='⚠️ 仅看临期<span class="cnt">'+expCnt+'</span>';
+    ec.onclick=function(){ state.onlyExp=!state.onlyExp; renderCats(); renderList(); };
+    box.appendChild(ec);
+  }
+
+  function renderList(){
+    var list=$("list"); list.innerHTML="";
+    var kw=state.keyword.trim().toLowerCase();
+    var items = products.filter(function(p){
+      if(state.filterCat!=="全部" && p.category!==state.filterCat) return false;
+      if(state.onlyExp && expStatus(p.expirationDate).cls==="ok") return false;
+      if(kw){
+        var hay=(p.name+" "+(p.category||"")).toLowerCase();
+        if(hay.indexOf(kw)<0) return false;
+      }
+      return true;
+    });
+    // 临期/过期优先排序
+    items.sort(function(a,b){
+      var ea=expStatus(a.expirationDate).cls, eb=expStatus(b.expirationDate).cls;
+      var rank={danger:0,warn:1,ok:2};
+      if(rank[ea]!==rank[eb]) return rank[ea]-rank[eb];
+      return (b.createdAt||0)-(a.createdAt||0);
+    });
+
+    if(items.length===0){
+      list.innerHTML='<div class="empty"><div class="big">📦</div>暂无商品<br/>点击下方「＋ 添加商品」开始录入</div>';
+    } else {
+      items.forEach(function(p){
+        var st=expStatus(p.expirationDate);
+        var profit = (Number(p.salePrice)||0)-(Number(p.purchasePrice)||0);
+        var card=document.createElement("div");
+        card.className="card";
+        var imgHtml = p.image ? '<img src="'+p.image+'" alt="">' : '📦';
+        card.innerHTML =
+          '<div class="img">'+imgHtml+'</div>'+
+          '<div class="info">'+
+            '<div class="name">'+escapeHtml(p.name)+' <span class="cat-tag">'+escapeHtml(p.category||"")+'</span></div>'+
+            '<div class="prices">'+
+              '<span class="sale">'+fmtMoney(p.salePrice)+'</span>'+
+              '<span class="cost">进价 '+fmtMoney(p.purchasePrice)+'</span>'+
+              (Number(p.customPrice)?'<span class="profit">自定义 '+fmtMoney(p.customPrice)+'</span>':'')+
+              (profit!==0?'<span class="profit">毛利 '+fmtMoney(profit)+'</span>':'')+
+            '</div>'+
+            '<div class="dates">'+
+              (p.productionDate?'<span>📅 产 '+p.productionDate+'</span>':'')+
+              (p.expirationDate?'<span>⏳ 至 '+p.expirationDate+'</span>':'')+
+              (p.shelfValue?('<span>🗓 保质期 '+p.shelfValue+SHELF_LABEL[p.shelfUnit]+'</span>'):'')+
+            '</div>'+
+            '<span class="exp '+st.cls+'">'+st.txt+'</span>'+
+          '</div>'+
+          '<div class="acts">'+
+            '<button data-edit="'+p.id+'">✏️</button>'+
+            '<button data-del="'+p.id+'">🗑️</button>'+
+          '</div>';
+        list.appendChild(card);
+      });
+    }
+    // bind actions
+    list.querySelectorAll("[data-edit]").forEach(function(b){
+      b.onclick=function(){ openSheet(b.getAttribute("data-edit")); };
+    });
+    list.querySelectorAll("[data-del]").forEach(function(b){
+      b.onclick=function(){
+        var id=b.getAttribute("data-del");
+        if(confirm("确定删除该商品？")){
+          products=products.filter(function(p){return p.id!==id;});
+          save(KEY_PROD,products); renderAll(); toast("已删除");
+        }
+      };
+    });
+    renderStats();
+  }
+
+  function renderStats(){
+    $("statCount").textContent=products.length;
+    var val=0; products.forEach(function(p){ val += Number(p.salePrice)||0; });
+    $("statValue").textContent=fmtMoney(val);
+    var exp=products.filter(function(p){ return expStatus(p.expirationDate).cls!=="ok"; }).length;
+    $("statExp").textContent=exp;
+  }
+
+  function renderAll(){ renderCats(); renderList(); }
+
+  function escapeHtml(s){ return (s||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+
+  // ---------- sheet ----------
+  function fillCatSelect(){
+    var sel=$("f_cat"); sel.innerHTML="";
+    categories.forEach(function(c){
+      var o=document.createElement("option"); o.value=c; o.textContent=c; sel.appendChild(o);
+    });
+  }
+  function openSheet(id){
+    state.editingId=id||null; state.imgData=null;
+    fillCatSelect();
+    if(id){
+      var p=products.find(function(x){return x.id===id;});
+      if(!p) return;
+      $("sheetTitle").textContent="编辑商品";
+      $("f_name").value=p.name; $("f_cat").value=p.category;
+      $("f_sale").value=p.salePrice; $("f_cost").value=p.purchasePrice;
+      $("f_custom").value=p.customPrice||"";
+      $("f_prod").value=p.productionDate||""; $("f_exp").value=p.expirationDate||"";
+      $("f_shelf_val").value=p.shelfValue||""; $("f_shelf_unit").value=p.shelfUnit||"day";
+      state.imgData=p.image||null;
+      $("imgPrev").innerHTML = p.image ? '<img src="'+p.image+'">' : '📷';
+    } else {
+      $("sheetTitle").textContent="添加商品";
+      $("f_name").value=""; $("f_cat").selectedIndex=0;
+      $("f_sale").value=""; $("f_cost").value=""; $("f_custom").value="";
+      $("f_prod").value=""; $("f_exp").value="";
+      $("f_shelf_val").value=""; $("f_shelf_unit").value="day";
+      state.imgData=null; $("imgPrev").innerHTML='📷';
+    }
+    $("mask").classList.add("show");
+    $("sheet").classList.add("show");
+  }
+  function closeSheet(){
+    $("mask").classList.remove("show");
+    $("sheet").classList.remove("show");
+  }
+  function saveItem(){
+    var name=$("f_name").value.trim();
+    var cat=$("f_cat").value;
+    var sale=$("f_sale").value;
+    if(!name){ toast("请填写商品名称"); return; }
+    if(sale===""||isNaN(Number(sale))){ toast("请填写有效售价"); return; }
+    var data={
+      name:name, category:cat,
+      salePrice:Number(sale),
+      purchasePrice:Number($("f_cost").value)||0,
+      customPrice:Number($("f_custom").value)||0,
+      productionDate:$("f_prod").value||"",
+      expirationDate:$("f_exp").value||"",
+      shelfValue:Number($("f_shelf_val").value)||0,
+      shelfUnit:$("f_shelf_unit").value||"day",
+      image:state.imgData||null
+    };
+    if(state.editingId){
+      var i=products.findIndex(function(p){return p.id===state.editingId;});
+      if(i>=0){ products[i]=Object.assign({},products[i],data); }
+      toast("已保存");
+    } else {
+      data.id="p"+Date.now()+Math.floor(Math.random()*1000);
+      data.createdAt=Date.now();
+      products.push(data);
+      toast("已添加");
+    }
+    save(KEY_PROD,products);
+    closeSheet(); renderAll();
+  }
+
+  // image handling
+  $("pickImg").onclick=function(){ $("fileInput").click(); };
+  $("fileInput").onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    if(f.size>2*1024*1024){ toast("图片请小于 2MB"); return; }
+    var r=new FileReader();
+    r.onload=function(ev){ state.imgData=ev.target.result; $("imgPrev").innerHTML='<img src="'+state.imgData+'">'; };
+    r.readAsDataURL(f);
+  };
+
+  // 自动生成到期时间（生产日期 + 保质期）
+  $("f_prod").addEventListener("change", autoFillExpiration);
+  $("f_shelf_val").addEventListener("change", autoFillExpiration);
+  $("f_shelf_unit").addEventListener("change", autoFillExpiration);
+
+  // category manage
+  function renderCatManage(){
+    var box=$("catList"); box.innerHTML="";
+    categories.forEach(function(c){
+      var el=document.createElement("span");
+      el.style.cssText="background:#f2f3f5;padding:8px 12px;border-radius:18px;font-size:13px;display:flex;align-items:center;gap:6px;";
+      el.innerHTML='<span>'+escapeHtml(c)+'</span>';
+      var del=document.createElement("span");
+      del.textContent="✕"; del.style.cssText="color:#e54d42;cursor:pointer;font-size:12px;";
+      del.onclick=function(){
+        if(products.some(function(p){return p.category===c;})){ toast("该分类下还有商品"); return; }
+        categories=categories.filter(function(x){return x!==c;});
+        save(KEY_CAT,categories); renderCatManage(); renderAll();
+      };
+      el.appendChild(del);
+      box.appendChild(el);
+    });
+  }
+  function openCat(){ renderCatManage(); $("f_warn").value=WARN_DAYS; $("catMask").classList.add("show"); $("catSheet").classList.add("show"); }
+  function closeCat(){ $("catMask").classList.remove("show"); $("catSheet").classList.remove("show"); }
+
+  // events
+  $("addBtn").onclick=function(){ openSheet(null); };
+  $("hdrAddBtn").onclick=function(){ openSheet(null); };
+  $("cancelBtn").onclick=closeSheet;
+  $("saveBtn").onclick=saveItem;
+  $("mask").onclick=closeSheet;
+  $("catBtn").onclick=openCat;
+  $("catCancel").onclick=closeCat;
+  $("catMask").onclick=closeCat;
+  $("saveWarnBtn").onclick=function(){
+    var d=Number($("f_warn").value)||7; if(d<1) d=1;
+    settings.warnDays=d; save(KEY_SET,settings); WARN_DAYS=d;
+    renderAll(); toast("临期阈值已设为 "+d+" 天");
+  };
+  $("statExpBox").onclick=function(){
+    state.onlyExp=!state.onlyExp; renderCats(); renderList();
+    toast(state.onlyExp?"已筛选：仅看临期/过期":"已显示全部商品");
+  };
+  $("addCatBtn").onclick=function(){
+    var v=$("newCat").value.trim();
+    if(!v){ toast("请输入分类名"); return; }
+    if(categories.indexOf(v)>=0){ toast("分类已存在"); return; }
+    categories.push(v); save(KEY_CAT,categories);
+    $("newCat").value=""; renderCatManage(); renderAll(); toast("已添加分类");
+  };
+  var searchT;
+  $("search").oninput=function(e){
+    state.keyword=e.target.value;
+    $("clearSearch").style.display = state.keyword?"block":"none";
+    clearTimeout(searchT); searchT=setTimeout(renderList,120);
+  };
+  $("clearSearch").onclick=function(){ $("search").value=""; state.keyword=""; this.style.display="none"; renderList(); };
+
+  // init
+  renderAll();
+})();
+
+// 注册 Service Worker（支持离线 & 安装到手机主屏）
+if("serviceWorker" in navigator){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(e){ console.log("SW 注册失败:", e); });
+  });
+}
+</script>
+</body>
+</html>

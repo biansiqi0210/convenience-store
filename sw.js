@@ -1,7 +1,17 @@
-// 便利店工作台 · 最小 Service Worker（网络优先，离线兜底）
-const CACHE = "cvs-store-v1";
+// 便利店工作台 · Service Worker（网络优先，离线兜底，按真实网址缓存）
+const CACHE = "cvs-store-v2";
+const PRECACHE = [
+  "./",
+  "index.html",
+  "xinpeng.html",
+  "manifest.webmanifest",
+  "xinpeng.webmanifest",
+  "icon-192.png",
+  "icon-512.png",
+  "icon-mask.png"
+];
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then(c => c.add("./")).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", (e) => {
   e.waitUntil(
@@ -16,9 +26,9 @@ self.addEventListener("fetch", (e) => {
     fetch(req)
       .then(res => {
         const copy = res.clone();
-        caches.open(CACHE).then(c => c.put("./", copy));
+        caches.open(CACHE).then(c => c.put(req, copy));
         return res;
       })
-      .catch(() => caches.match("./"))
+      .catch(() => caches.match(req).then(r => r || caches.match("./")))
   );
 });
