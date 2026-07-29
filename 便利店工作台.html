@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>便利店工作台 · 库存管理</title>
+<style>
+  :root{
+    --bg:#eef7f4;
+    --panel:#ffffff;
+    --ink:#2f4f4a;
+    --ink-soft:#6b8a83;
+    --line:#dcebe6;
+    --mint:#3fb6a8;
+    --mint-deep:#2a9488;
+    --mint-soft:#d7f0ea;
+    --green:#7cc47f;
+    --amber:#f2b35e;
+    --red:#e8736b;
+    --shadow:0 6px 24px rgba(58,130,118,.10);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(160deg,#eef7f4 0%,#e3f2ee 100%);
+    color:var(--ink);
+    font-size:15px;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  .app{display:flex;flex-direction:column;min-height:100vh;}
+
+  /* 顶部栏 */
+  header{
+    position:sticky;top:0;z-index:30;
+    background:rgba(255,255,255,.82);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+    padding:14px 20px;
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--mint-deep);white-space:nowrap;}
+  .brand .logo{
+    width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,var(--mint),var(--green));
+    display:grid;place-items:center;color:#fff;font-size:18px;box-shadow:var(--shadow);
+  }
+  .search{
+    flex:1;min-width:200px;position:relative;
+  }
+  .search input{
+    width:100%;padding:11px 14px 11px 40px;border:1px solid var(--line);
+    border-radius:12px;background:#fff;font-size:15px;color:var(--ink);outline:none;
+    transition:.2s;
+  }
+  .search input:focus{border-color:var(--mint);box-shadow:0 0 0 3px var(--mint-soft);}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-soft);}
+  .btn{
+    border:none;cursor:pointer;font-size:14px;font-weight:600;border-radius:12px;
+    padding:11px 16px;transition:.18s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--mint),var(--mint-deep));color:#fff;box-shadow:var(--shadow);}
+  .btn-primary:hover{filter:brightness(1.05);transform:translateY(-1px);}
+  .btn-ghost{background:var(--mint-soft);color:var(--mint-deep);}
+  .btn-ghost:hover{background:#c7e9e1;}
+  .btn-line{background:#fff;border:1px solid var(--line);color:var(--ink);}
+  .btn-line:hover{border-color:var(--mint);color:var(--mint-deep);}
+
+  /* 主体布局 */
+  .layout{flex:1;display:flex;align-items:stretch;}
+
+  /* 侧边栏 */
+  aside{
+    width:240px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);
+    padding:18px 14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;
+  }
+  .side-title{font-size:12px;font-weight:700;color:var(--ink-soft);letter-spacing:.5px;margin:6px 6px 2px;text-transform:uppercase;}
+  .cat{
+    display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;cursor:pointer;
+    color:var(--ink);transition:.15s;position:relative;
+  }
+  .cat:hover{background:var(--mint-soft);}
+  .cat.active{background:var(--mint-soft);color:var(--mint-deep);font-weight:600;}
+  .cat .emoji{font-size:18px;width:24px;text-align:center;}
+  .cat .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cat .count{font-size:12px;background:#eaf4f1;color:var(--ink-soft);padding:1px 8px;border-radius:20px;}
+  .cat .del{opacity:0;color:var(--red);font-size:13px;padding:2px 5px;border-radius:7px;}
+  .cat:hover .del{opacity:1;}
+  .cat .del:hover{background:#fde8e6;}
+  .add-cat{
+    display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px dashed var(--line);
+    border-radius:12px;color:var(--mint-deep);cursor:pointer;font-weight:600;transition:.15s;background:#f7fbfa;
+  }
+  .add-cat:hover{border-color:var(--mint);background:var(--mint-soft);}
+  .side-divider{height:1px;background:var(--line);margin:8px 4px;}
+  .near-toggle{
+    display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;cursor:pointer;
+    background:linear-gradient(135deg,#fff6e9,#fdeccf);color:#b9791f;font-weight:600;transition:.15s;
+  }
+  .near-toggle:hover{filter:brightness(1.03);}
+  .near-toggle .emoji{font-size:18px;}
+  .near-toggle .name{flex:1;}
+  .near-toggle .count{background:#f6d9a8;color:#a8660f;padding:1px 8px;border-radius:20px;font-size:12px;}
+
+  /* 内容区 */
+  main{flex:1;padding:22px 26px;overflow-y:auto;}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+  .crumb{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;}
+  .crumb .sub{font-size:13px;font-weight:500;color:var(--ink-soft);}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 16px;text-align:center;min-width:88px;box-shadow:var(--shadow);}
+  .stat .num{font-size:22px;font-weight:700;color:var(--mint-deep);}
+  .stat .lab{font-size:12px;color:var(--ink-soft);}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;}
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);transition:.18s;display:flex;flex-direction:column;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(58,130,118,.16);}
+  .card .img{width:100%;height:150px;object-fit:cover;background:#eef4f2;display:block;}
+  .card .img-placeholder{width:100%;height:150px;display:grid;place-items:center;background:linear-gradient(135deg,#eaf4f1,#dcefe9);color:var(--ink-soft);font-size:40px;}
+  .card .body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;flex:1;}
+  .card .title{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .card .meta{font-size:12.5px;color:var(--ink-soft);display:flex;flex-direction:column;gap:3px;}
+  .card .meta b{color:var(--ink);font-weight:600;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;align-self:flex-start;}
+  .badge.ok{background:#e4f4e6;color:#3f8a45;}
+  .badge.near{background:#fdeccf;color:#b9791f;}
+  .badge.exp{background:#fde8e6;color:#d24b43;}
+  .card .actions{display:flex;gap:8px;margin-top:auto;padding-top:6px;}
+  .card .actions .btn{flex:1;justify-content:center;padding:8px;font-size:13px;}
+  .empty{
+    grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ink-soft);
+  }
+  .empty .big{font-size:54px;margin-bottom:10px;}
+
+  /* 弹窗 */
+  .modal-mask{position:fixed;inset:0;background:rgba(40,70,64,.4);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50;padding:16px;}
+  .modal-mask.show{display:flex;}
+  .modal{
+    background:#fff;border-radius:20px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,.2);animation:pop .2s ease;
+  }
+  @keyframes pop{from{transform:translateY(14px) scale(.98);opacity:0;}to{transform:none;opacity:1;}}
+  .modal-head{padding:20px 22px 0;display:flex;align-items:center;justify-content:space-between;}
+  .modal-head h3{font-size:19px;color:var(--mint-deep);}
+  .modal-head .x{background:none;border:none;font-size:24px;color:var(--ink-soft);cursor:pointer;line-height:1;}
+  .modal-body{padding:18px 22px 8px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:7px;}
+  .field input,.field select{
+    width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:15px;
+    color:var(--ink);outline:none;background:#fff;transition:.15s;font-family:inherit;
+  }
+  .field input:focus,.field select:focus{border-color:var(--mint);box-shadow:0 0 0 3px var(--mint-soft);}
+  .row2{display:flex;gap:18px;}
+  .row2 .field:last-child{flex:1.35;}
+  .row2 input[type="number"]{text-align:center;min-width:70px;}
+  .row2 select{min-width:95px;flex-shrink:0;}
+  .row2 .field{flex:1;}
+  .upload{
+    border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;cursor:pointer;
+    transition:.15s;background:#f7fbfa;color:var(--ink-soft);
+  }
+  .upload:hover{border-color:var(--mint);background:var(--mint-soft);color:var(--mint-deep);}
+  .upload .up-icon{font-size:30px;}
+  .upload .up-tip{font-size:12px;margin-top:4px;}
+  .img-preview{margin-top:10px;display:none;border-radius:14px;overflow:hidden;position:relative;}
+  .img-preview img{width:100%;max-height:240px;object-fit:contain;background:#f0f4f2;display:block;}
+  .img-preview .rm{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px;}
+  .auto-note{font-size:12px;color:var(--mint-deep);background:var(--mint-soft);padding:8px 11px;border-radius:9px;margin-top:6px;display:none;}
+  .auto-note.show{display:block;}
+  .modal-foot{padding:6px 22px 22px;display:flex;gap:12px;}
+  .modal-foot .btn{flex:1;justify-content:center;padding:13px;}
+
+  /* 临期设置 */
+  .setting-row{display:flex;align-items:center;gap:12px;background:var(--mint-soft);padding:12px 14px;border-radius:12px;}
+  .setting-row input{width:90px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:16px;font-weight:700;color:var(--mint-deep);border-color:var(--mint);}
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;
+    opacity:0;pointer-events:none;transition:.3s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media(max-width:760px){
+    aside{position:fixed;left:0;top:0;bottom:0;z-index:40;transform:translateX(-100%);transition:.25s;box-shadow:var(--shadow);}
+    aside.open{transform:none;}
+    .menu-btn{display:inline-flex !important;}
+    main{padding:16px;}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+  }
+  .menu-btn{display:none;background:var(--mint-soft);border:none;color:var(--mint-deep);font-size:20px;width:40px;height:40px;border-radius:11px;cursor:pointer;align-items:center;justify-content:center;}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:39;}
+  .scrim.show{display:block;}
+</style>
+  <meta name="theme-color" content="#2a9488">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="便利店">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-512.png">
+</head>
+<body>
+<div class="app">
+  <header>
+    <button class="menu-btn" id="menuBtn">☰</button>
+    <div class="brand"><span class="logo">🛒</span>便利店工作台</div>
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="search" placeholder="搜索物品名称、分类…">
+    </div>
+    <button class="btn btn-primary" id="addItemBtn">＋ 添加物品</button>
+  </header>
+
+  <div class="layout">
+    <div class="scrim" id="scrim"></div>
+    <aside id="sidebar">
+      <div class="side-title">物品分类</div>
+      <div id="catList"></div>
+      <div class="add-cat" id="addCatBtn">＋ 添加自定义分类</div>
+      <div class="side-divider"></div>
+      <div class="near-toggle" id="nearToggle">
+        <span class="emoji">⏰</span>
+        <span class="name">临期专区</span>
+        <span class="count" id="nearCount">0</span>
+      </div>
+    </aside>
+
+    <main>
+      <div class="toolbar">
+        <div class="crumb">
+          <span id="crumbTitle">全部物品</span>
+          <span class="sub" id="crumbSub"></span>
+        </div>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </main>
+  </div>
+</div>
+
+<!-- 添加/编辑物品弹窗 -->
+<div class="modal-mask" id="itemModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="itemModalTitle">添加物品</h3>
+      <button class="x" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>物品名称 *</label>
+        <input id="f_name" type="text" placeholder="例如：海天酱油">
+      </div>
+      <div class="field">
+        <label>物品图片（支持手机拍照大图）</label>
+        <div class="upload" id="uploadBox">
+          <div class="up-icon">📷</div>
+          <div>点击上传 / 拍照或从相册选择图片</div>
+          <div class="up-tip">自动压缩大像素照片，支持拍照或相册图片</div>
+        </div>
+        <input id="f_image" type="file" accept="image/*" hidden>
+        <div class="img-preview" id="imgPreview">
+          <img id="imgPreviewImg" alt="预览">
+          <button class="rm" id="imgRemove">移除</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>所属分类 *</label>
+        <select id="f_category"></select>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>生产日期</label>
+          <input id="f_prod" type="date">
+        </div>
+        <div class="field">
+          <label>保质期</label>
+          <div style="display:flex;gap:8px;">
+            <input id="f_life" type="number" min="0" placeholder="数值" style="flex:1;">
+            <select id="f_unit" style="width:90px;">
+              <option value="day">天</option>
+              <option value="month">个月</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>到期时间</label>
+        <input id="f_exp" type="date">
+        <div class="auto-note" id="autoNote">✓ 已根据生产日期与保质期自动算出到期时间，也可手动修改</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-line" data-close>取消</button>
+      <button class="btn btn-primary" id="saveItemBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 临期设置弹窗 -->
+<div class="modal-mask" id="nearModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>临期专区设置</h3>
+      <button class="x" data-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>临期提醒阈值</label>
+        <div class="setting-row">
+          <span>距离到期</span>
+          <input id="nearDays" type="number" min="1" value="7">
+          <span>天及以内，即视为“临期”</span>
+        </div>
+        <div class="auto-note show">已过期物品也会一并显示在临期专区（标红）。</div>
+      </div>
+      <div class="field" id="nearListWrap" style="margin-top:18px;">
+        <label>当前临期 / 过期物品</label>
+        <div id="nearList" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-line" data-close>关闭</button>
+      <button class="btn btn-primary" id="saveNearBtn">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  const STORE_KEY = "store_workbench_v1";
+  const DEFAULT_CATS = [
+    {id:"cat_tiao", name:"调料", emoji:"🧂", builtin:true},
+    {id:"cat_yin",  name:"饮料", emoji:"🥤", builtin:true},
+    {id:"cat_ling", name:"零食", emoji:"🍪", builtin:true},
+  ];
+
+  // ---------- 数据层 ----------
+  let state = load();
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(raw){ return JSON.parse(raw); }
+    }catch(e){}
+    return {
+      categories: DEFAULT_CATS.map(c=>({...c})),
+      items: [],
+      settings: { nearDays: 7 },
+      view: "all"   // all | catId | near
+    };
+  }
+  function save(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){
+      toast("保存失败：存储空间可能已满，请删除部分大图物品");
+    }
+  }
+
+  // ---------- 工具 ----------
+  const $ = id => document.getElementById(id);
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function todayStr(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+  function fmtDate(d){
+    if(!d) return "—";
+    const x=new Date(d); if(isNaN(x)) return "—";
+    const m=String(x.getMonth()+1).padStart(2,"0"), day=String(x.getDate()).padStart(2,"0");
+    return `${x.getFullYear()}-${m}-${day}`;
+  }
+  function daysBetween(a,b){ // a - b 的天数
+    return Math.round((new Date(a).setHours(0,0,0,0) - new Date(b).setHours(0,0,0,0))/86400000);
+  }
+  function computeExp(prod, life, unit){
+    if(!prod || !life || life<=0) return "";
+    const d=new Date(prod); if(isNaN(d)) return "";
+    if(unit==="month"){ d.setMonth(d.getMonth()+Number(life)); }
+    else { d.setDate(d.getDate()+Number(life)); }
+    return fmtDate(d);
+  }
+  function toast(msg){
+    const t=$("toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200);
+  }
+
+  // 计算物品状态：ok / near / exp
+  function itemStatus(item){
+    if(!item.exp) return {key:"ok", label:"正常", left:null};
+    const left = daysBetween(item.exp, todayStr());
+    if(left < 0) return {key:"exp", label:"已过期", left};
+    if(left <= state.settings.nearDays) return {key:"near", label:`临期 ${left}天`, left};
+    return {key:"ok", label:`剩余 ${left}天`, left};
+  }
+
+  // ---------- 渲染：侧边栏 ----------
+  function renderCats(){
+    const list = $("catList");
+    list.innerHTML = "";
+    state.categories.forEach(c=>{
+      const count = state.items.filter(i=>i.categoryId===c.id).length;
+      const el = document.createElement("div");
+      el.className = "cat" + (state.view===c.id?" active":"");
+      el.innerHTML = `<span class="emoji">${c.emoji||"📦"}</span>
+        <span class="name">${escapeHtml(c.name)}</span>
+        <span class="count">${count}</span>` + (c.builtin? "" : `<span class="del" title="删除分类">🗑</span>`);
+      el.onclick = (e)=>{
+        if(e.target.classList.contains("del")){
+          if(confirm(`删除分类「${c.name}」？该分类下的物品将移动到“未分类”。`)){
+            const uncat = ensureUncat();
+            state.items.forEach(i=>{ if(i.categoryId===c.id) i.categoryId=uncat.id; });
+            state.categories = state.categories.filter(x=>x.id!==c.id);
+            if(state.view===c.id) state.view="all";
+            save(); renderAll();
+          }
+          return;
+        }
+        state.view = c.id; renderAll(); closeSidebar();
+      };
+      list.appendChild(el);
+    });
+    // 未分类计数（仅当有）
+    const uncat = state.categories.find(c=>c.id==="cat_uncat");
+    if(uncat){
+      const count = state.items.filter(i=>i.categoryId===uncat.id).length;
+      if(count>0){
+        const el=document.createElement("div");
+        el.className="cat"+(state.view===uncat.id?" active":"");
+        el.innerHTML=`<span class="emoji">📦</span><span class="name">未分类</span><span class="count">${count}</span>`;
+        el.onclick=()=>{state.view=uncat.id;renderAll();closeSidebar();};
+        list.appendChild(el);
+      }
+    }
+    // 临期计数
+    const nearItems = getNearItems();
+    $("nearCount").textContent = nearItems.length;
+  }
+  function ensureUncat(){
+    let u = state.categories.find(c=>c.id==="cat_uncat");
+    if(!u){ u={id:"cat_uncat",name:"未分类",emoji:"📦",builtin:false}; state.categories.push(u); }
+    return u;
+  }
+
+  // ---------- 渲染：主区 ----------
+  function getNearItems(){
+    return state.items.filter(i=>{ const s=itemStatus(i); return s.key==="near"||s.key==="exp"; })
+      .sort((a,b)=> itemStatus(a).left - itemStatus(b).left);
+  }
+  function visibleItems(){
+    let items;
+    if(state.view==="all") items = state.items.slice();
+    else if(state.view==="near") items = getNearItems();
+    else items = state.items.filter(i=>i.categoryId===state.view);
+    const q = ($("searchInput").value||"").trim().toLowerCase();
+    if(q){
+      items = items.filter(i=>{
+        const cat = state.categories.find(c=>c.id===i.categoryId);
+        return (i.name||"").toLowerCase().includes(q) || (cat?cat.name.toLowerCase().includes(q):false);
+      });
+    }
+    return items;
+  }
+  function renderMain(){
+    const grid = $("grid");
+    grid.innerHTML = "";
+    const items = visibleItems();
+
+    // 面包屑 + 统计
+    if(state.view==="all"){ $("crumbTitle").textContent="全部物品"; }
+    else if(state.view==="near"){ $("crumbTitle").textContent="⏰ 临期专区"; }
+    else { const c=state.categories.find(x=>x.id===state.view); $("crumbTitle").textContent=(c?c.emoji+" ":"")+(c?c.name:"分类"); }
+    $("crumbSub").textContent = `共 ${items.length} 件`;
+
+    const total = state.items.length;
+    const near = getNearItems().length;
+    const exp = state.items.filter(i=>itemStatus(i).key==="exp").length;
+    $("stats").innerHTML = `
+      <div class="stat"><div class="num">${total}</div><div class="lab">全部物品</div></div>
+      <div class="stat"><div class="num" style="color:var(--amber)">${near}</div><div class="lab">临期</div></div>
+      <div class="stat"><div class="num" style="color:var(--red)">${exp}</div><div class="lab">已过期</div></div>`;
+
+    if(items.length===0){
+      grid.innerHTML = `<div class="empty"><div class="big">${state.view==="near"?"🎉":"📭"}</div>
+        <div>${state.view==="near"?"暂无临期物品，库存很健康~":(q?"没有匹配的物品":"该分类下还没有物品，点击右上角添加吧")}</div></div>`;
+      return;
+    }
+
+    items.forEach(item=>{
+      const s = itemStatus(item);
+      const cat = state.categories.find(c=>c.id===item.categoryId);
+      const card = document.createElement("div");
+      card.className="card";
+      const imgHtml = item.image
+        ? `<img class="img" src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy">`
+        : `<div class="img-placeholder">📦</div>`;
+      const badgeClass = s.key==="exp"?"exp":(s.key==="near"?"near":"ok");
+      card.innerHTML = `
+        ${imgHtml}
+        <div class="body">
+          <div class="title">${escapeHtml(item.name||"未命名")}</div>
+          <div class="meta">
+            <span>分类：${cat?escapeHtml(cat.name):"未分类"}</span>
+            <span>生产：<b>${fmtDate(item.prod)||"—"}</b></span>
+            <span>到期：<b>${fmtDate(item.exp)||"—"}</b></span>
+          </div>
+          <span class="badge ${badgeClass}">${s.label}</span>
+          <div class="actions">
+            <button class="btn btn-ghost" data-edit="${item.id}">编辑</button>
+            <button class="btn btn-line" data-del="${item.id}">删除</button>
+          </div>
+        </div>`;
+      card.querySelector("[data-edit]").onclick=()=>openItemModal(item.id);
+      card.querySelector("[data-del]").onclick=()=>{
+        if(confirm(`确定删除「${item.name}」？`)){ state.items=state.items.filter(x=>x.id!==item.id); save(); renderAll(); }
+      };
+      grid.appendChild(card);
+    });
+  }
+  function renderAll(){ renderCats(); renderMain(); }
+
+  function escapeHtml(str){ return String(str||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+  // ---------- 图片处理（大图压缩） ----------
+  let currentImage = null;
+  function handleImageFile(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const MAX = 1400; // 限制最长边像素，保证大图也能添加
+        let {width:w, height:h} = img;
+        if(w>MAX || h>MAX){
+          const r = Math.min(MAX/w, MAX/h);
+          w = Math.round(w*r); h = Math.round(h*r);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width=w; canvas.height=h;
+        canvas.getContext("2d").drawImage(img,0,0,w,h);
+        // JPEG 压缩，质量 0.85，兼顾清晰度与体积
+        currentImage = canvas.toDataURL("image/jpeg", 0.85);
+        $("imgPreviewImg").src = currentImage;
+        $("imgPreview").style.display="block";
+      };
+      img.onerror = ()=> toast("图片读取失败，请换一张");
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ---------- 物品弹窗 ----------
+  let editingId = null;
+  function fillCategorySelect(){
+    const sel = $("f_category");
+    sel.innerHTML = "";
+    state.categories.forEach(c=>{
+      const o=document.createElement("option"); o.value=c.id; o.textContent=c.name; sel.appendChild(o);
+    });
+  }
+  function openItemModal(id){
+    editingId = id || null;
+    fillCategorySelect();
+    currentImage = null;
+    $("imgPreview").style.display="none";
+    $("autoNote").classList.remove("show");
+    if(id){
+      const it = state.items.find(x=>x.id===id);
+      $("itemModalTitle").textContent="编辑物品";
+      $("f_name").value=it.name||"";
+      $("f_category").value=it.categoryId||"";
+      $("f_prod").value=it.prod||"";
+      $("f_life").value=it.life||"";
+      $("f_unit").value=it.unit||"day";
+      $("f_exp").value=it.exp||"";
+      if(it.image){ currentImage=it.image; $("imgPreviewImg").src=it.image; $("imgPreview").style.display="block"; }
+    } else {
+      $("itemModalTitle").textContent="添加物品";
+      $("f_name").value=""; $("f_prod").value=""; $("f_life").value=""; $("f_unit").value="day"; $("f_exp").value="";
+      // 默认选中当前查看的分类
+      if(state.view && state.view!=="all" && state.view!=="near") $("f_category").value=state.view;
+    }
+    openModal("itemModal");
+  }
+  function saveItem(){
+    const name = $("f_name").value.trim();
+    const categoryId = $("f_category").value;
+    const prod = $("f_prod").value;
+    const life = $("f_life").value ? Number($("f_life").value) : 0;
+    const unit = $("f_unit").value;
+    const exp = $("f_exp").value;
+    if(!name){ toast("请填写物品名称"); return; }
+    if(!categoryId){ toast("请选择分类"); return; }
+
+    if(editingId){
+      const it = state.items.find(x=>x.id===editingId);
+      Object.assign(it,{name,categoryId,prod,life,unit,exp,image:currentImage});
+    } else {
+      state.items.push({id:uid(),name,categoryId,prod,life,unit,exp,image:currentImage,addedAt:Date.now()});
+    }
+    save(); closeModal("itemModal"); renderAll();
+    toast(editingId?"已更新":"已添加："+name);
+  }
+
+  // 自动算到期
+  function updateAutoExp(){
+    const prod=$("f_prod").value, life=$("f_life").value;
+    if(prod && life>0){
+      const auto = computeExp(prod, life, $("f_unit").value);
+      // 仅当用户未手动填到期（或为空）时自动填充
+      if(!$("f_exp").value) { $("f_exp").value = auto; $("autoNote").classList.add("show"); }
+    }
+  }
+
+  // ---------- 临期弹窗 ----------
+  function openNearModal(){
+    $("nearDays").value = state.settings.nearDays;
+    renderNearList();
+    openModal("nearModal");
+  }
+  function renderNearList(){
+    const wrap=$("nearList"); wrap.innerHTML="";
+    const items=getNearItems();
+    if(items.length===0){ wrap.innerHTML=`<div style="color:var(--ink-soft);font-size:13px;padding:8px;">暂无临期或过期物品 🎉</div>`; return; }
+    items.forEach(it=>{
+      const s=itemStatus(it); const cat=state.categories.find(c=>c.id===it.categoryId);
+      const row=document.createElement("div");
+      row.style.cssText="display:flex;align-items:center;gap:10px;background:#f7fbfa;border:1px solid var(--line);border-radius:10px;padding:8px 10px;";
+      row.innerHTML=`<span class="badge ${s.key==='exp'?'exp':'near'}">${s.label}</span>
+        <span style="flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(it.name)}</span>
+        <span style="font-size:12px;color:var(--ink-soft);">${cat?escapeHtml(cat.name):""} · ${fmtDate(it.exp)}</span>`;
+      wrap.appendChild(row);
+    });
+  }
+  function saveNear(){
+    const d=Number($("nearDays").value);
+    if(d>0){ state.settings.nearDays=d; save(); renderAll(); }
+    closeModal("nearModal");
+    toast("临期阈值已设为 "+d+" 天");
+  }
+
+  // ---------- 弹窗通用 ----------
+  function openModal(id){ $(id).classList.add("show"); document.body.style.overflow="hidden"; }
+  function closeModal(id){ $(id).classList.remove("show"); document.body.style.overflow=""; }
+
+  // ---------- 移动端侧栏 ----------
+  function closeSidebar(){ $("sidebar").classList.remove("open"); $("scrim").classList.remove("show"); }
+
+  // ---------- 事件绑定 ----------
+  $("addItemBtn").onclick = ()=>openItemModal(null);
+  $("addCatBtn").onclick = ()=>{
+    const name=prompt("请输入新分类名称：");
+    if(!name) return;
+    const emoji=prompt("可选：输入一个 emoji 作为图标（直接回车跳过）","📦");
+    state.categories.push({id:uid(), name:name.trim(), emoji:(emoji&&emoji.trim())||"📦", builtin:false});
+    save(); renderAll(); toast("已添加分类："+name);
+  };
+  $("nearToggle").onclick = ()=>{ state.view="near"; renderAll(); closeSidebar(); };
+  $("searchInput").addEventListener("input", renderMain);
+
+  $("uploadBox").onclick = ()=>$("f_image").click();
+  $("f_image").onchange = e=>{ if(e.target.files[0]) handleImageFile(e.target.files[0]); e.target.value=""; };
+  $("imgRemove").onclick = ()=>{ currentImage=null; $("imgPreview").style.display="none"; };
+
+  $("f_prod").addEventListener("change", updateAutoExp);
+  $("f_life").addEventListener("input", updateAutoExp);
+  $("f_unit").addEventListener("change", updateAutoExp);
+
+  $("saveItemBtn").onclick = saveItem;
+  $("saveNearBtn").onclick = saveNear;
+  $("nearModal").querySelector("[data-close]").onclick=()=>closeModal("nearModal");
+
+  document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{ b.closest(".modal-mask").classList.remove("show"); document.body.style.overflow=""; });
+  document.querySelectorAll(".modal-mask").forEach(m=>{
+    m.addEventListener("click",e=>{ if(e.target===m){ m.classList.remove("show"); document.body.style.overflow=""; }});
+  });
+  $("menuBtn").onclick=()=>{ $("sidebar").classList.toggle("open"); $("scrim").classList.toggle("show"); };
+  $("scrim").onclick=closeSidebar;
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ document.querySelectorAll(".modal-mask.show").forEach(m=>{m.classList.remove("show");document.body.style.overflow="";}); closeSidebar(); }});
+
+  // 初始化
+  renderAll();
+})();
+</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(function(){ /* 忽略，不影响使用 */ });
+    }
+  </script>
+</body>
+</html>
