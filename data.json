@@ -1,7 +1,27 @@
 {
-  "products": [],
-  "categories": ["饮料","面包","方便面","酒","烟","卫生用品","其他生活用品"],
-  "settings": { "warnDays": 7 },
-  "updatedAt": 0,
-  "updatedBy": "init"
+  "products": [
+    {
+      "id": "test1",
+      "name": "测试商品-同步验证",
+      "category": "饮料",
+      "salePrice": 3.5,
+      "purchasePrice": 2,
+      "expirationDate": "2026-12-31",
+      "createdAt": 1785500924148
+    }
+  ],
+  "categories": [
+    "饮料",
+    "面包",
+    "方便面",
+    "酒",
+    "烟",
+    "卫生用品",
+    "其他生活用品"
+  ],
+  "settings": {
+    "warnDays": 7
+  },
+  "updatedAt": 1785500924148,
+  "updatedBy": "deploy-test"
 }
