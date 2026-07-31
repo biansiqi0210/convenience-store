@@ -1,0 +1,7 @@
+{
+  "products": [],
+  "categories": ["饮料","面包","方便面","酒","烟","卫生用品","其他生活用品"],
+  "settings": { "warnDays": 7 },
+  "updatedAt": 0,
+  "updatedBy": "init"
+}

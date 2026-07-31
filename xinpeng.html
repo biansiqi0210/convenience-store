@@ -35,6 +35,23 @@
     -webkit-font-smoothing:antialiased;
   }
   .app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+
+  /* 同步状态栏 */
+  .sync-bar{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    padding:5px 16px;font-size:12px;z-index:15;transition:.3s;
+  }
+  .sync-bar .dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .sync-bar.synced{background:rgba(63,182,168,.10);color:var(--green-d);}
+  .sync-bar.synced .dot{background:var(--green);box-shadow:0 0 5px var(--green);}
+  .sync-bar.syncing{background:rgba(242,179,94,.12);color:var(--orange);}
+  .sync-bar.syncing .dot{background:var(--orange);animation:pulse 1s infinite;}
+  .sync-bar.offline{background:rgba(232,115,107,.10);color:var(--red);}
+  .sync-bar.offline .dot{background:var(--red);}
+  .sync-bar.error{background:rgba(232,115,107,.12);color:var(--red);}
+  .sync-bar.error .dot{background:var(--red);}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
   /* Header */
   header{
     position:sticky;top:0;z-index:20;
@@ -59,6 +76,7 @@
     display:flex;align-items:center;justify-content:center;cursor:pointer;
     box-shadow:0 3px 10px rgba(63,182,168,.45);
   }
+
   /* Search */
   .search-wrap{padding:12px 16px 4px;}
   .search{
@@ -68,6 +86,7 @@
   .search svg{flex:none;}
   .search input{border:none;outline:none;flex:1;font-size:15px;background:transparent;color:var(--text);}
   .search .clear{cursor:pointer;color:var(--muted);font-size:18px;display:none;}
+
   /* Category chips */
   .cats{padding:10px 16px 4px;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .cats::-webkit-scrollbar{display:none;}
@@ -77,6 +96,7 @@
   }
   .chip.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600;}
   .chip .cnt{opacity:.7;margin-left:4px;font-size:11px;}
+
   /* List */
   .list{padding:10px 16px 90px;flex:1;}
   .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px;}
@@ -106,6 +126,7 @@
   .exp.danger{background:rgba(229,77,66,.12);color:var(--red);}
   .card .acts{position:absolute;top:10px;right:10px;display:flex;gap:6px;}
   .card .acts button{border:none;background:#f5f5f5;width:30px;height:30px;border-radius:8px;font-size:14px;cursor:pointer;color:#666;}
+
   /* FAB */
   .fab{
     position:fixed;left:50%;transform:translateX(-50%);
@@ -115,6 +136,7 @@
     cursor:pointer;z-index:30;display:flex;align-items:center;gap:8px;
     max-width:calc(100% - 32px);
   }
+
   /* Sheet / Modal */
   .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:none;opacity:0;transition:.2s;}
   .mask.show{display:block;opacity:1;}
@@ -138,9 +160,7 @@
   .field input:focus,.field select:focus{border-color:var(--green);background:#fff;}
   .field .row{display:flex;gap:10px;}
   .field .row > *{flex:1;}
-  .img-pick{
-    display:flex;align-items:center;gap:12px;
-  }
+  .img-pick{display:flex;align-items:center;gap:12px;}
   .img-pick .preview{
     width:64px;height:64px;border-radius:10px;background:#f0f0f0;overflow:hidden;flex:none;
     display:flex;align-items:center;justify-content:center;color:#bbb;font-size:24px;border:1px dashed #ddd;
@@ -152,6 +172,7 @@
   .btn-cancel{background:#f2f3f5;color:#555;}
   .btn-save{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;}
   .btn-del{background:#fff;color:var(--red);border:1px solid #f5c6c2 !important;}
+
   /* toast */
   .toast{
     position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);
@@ -159,30 +180,47 @@
     font-size:14px;z-index:100;opacity:0;transition:.2s;pointer-events:none;max-width:80%;
   }
   .toast.show{opacity:1;}
+
+  /* 数据工具栏 */
+  .tools-bar{display:flex;gap:8px;padding:8px 16px;background:rgba(63,182,168,.06);border-bottom:1px solid rgba(63,182,168,.08);}
+  .tools-bar button{
+    flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;
+    padding:8px 10px;font-size:13px;color:var(--text);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:4px;
+  }
+  .tools-bar button:active{background:var(--bg);}
+
+  /* 设置面板 */
+  .setup-panel{display:none;position:fixed;inset:0;z-index:200;background:var(--bg);padding:20px;overflow-y:auto;}
+  .setup-panel.show{display:block;}
+  .setup-panel h2{text-align:center;color:var(--green-d);margin-bottom:8px;}
+  .setup-panel .sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:18px;}
+  .setup-panel .step{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .setup-panel .step h3{margin:0 0 8px;font-size:14px;color:var(--green-d);}
+  .setup-panel .step p{margin:4px 0;font-size:13px;color:#666;line-height:1.6;}
+  .setup-panel .step b{color:var(--text);}
+  .setup-panel .step input{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;
+    font-size:14px;margin:8px 0;background:#fafafa;
+  }
+  .setup-panel .btn-go{
+    width:100%;background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;
+    border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;
+  }
+  .setup-panel .btn-ghost{
+    width:100%;background:#f2f3f5;color:#555;border:none;border-radius:12px;
+    padding:13px;font-size:15px;cursor:pointer;margin-top:10px;
+  }
 </style>
-<script src="https://beacon.cdn.qq.com/sdk/4.5.9/beacon_web.min.js"></script>
-<script>
-(function(){
-  try{
-    var beacon=new BeaconAction({
-      appkey:'0WEB06U85YBSLJNL',
-      versionCode:'1.0.0',
-      channelID:'share',
-      delay:1000,
-      sessionDuration:30*60*1000,
-      isOversea:false,
-      needReportRqdEvent:false
-    });
-    beacon.onDirectUserAction('preview_page_view',{
-      'url':location.href,
-      'referrer':document.referrer,
-      'title':document.title,
-      'sandbox_id':'1f2d955288504e6ca973af973be8a1d1'
-    });
-  }catch(e){}
-})();
-</script></head>
+</head>
 <body>
+
+<!-- 同步状态栏 -->
+<div class="sync-bar offline" id="syncBar">
+  <span class="dot"></span>
+  <span id="syncText">⚠️ 离线模式 · 数据暂存本地</span>
+</div>
+
 <div class="app">
   <header>
     <div class="top">
@@ -190,6 +228,7 @@
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="add-btn" id="hdrAddBtn" title="添加商品">＋</button>
         <button class="icon-btn" id="catBtn" title="分类管理">⚙️</button>
+        <button class="icon-btn" id="dataBtn" title="数据管理">☁️</button>
       </div>
     </div>
     <div class="stat">
@@ -198,6 +237,13 @@
       <div class="item" id="statExpBox" style="cursor:pointer;"><div class="num" id="statExp">0</div><div class="lbl">临期/过期 ⇩</div></div>
     </div>
   </header>
+
+  <!-- 数据工具栏 -->
+  <div class="tools-bar" id="toolsBar" style="display:none;">
+    <button id="exportBtn">📤 导出备份</button>
+    <button id="importBtn">📥 导入恢复</button>
+    <button id="setupBtn">⚙️ 云端设置</button>
+  </div>
 
   <div class="search-wrap">
     <div class="search">
@@ -208,13 +254,12 @@
   </div>
 
   <div class="cats" id="cats"></div>
-
   <div class="list" id="list"></div>
 </div>
 
 <button class="fab" id="addBtn">＋ 添加商品</button>
 
-<!-- Add / Edit Sheet -->
+<!-- 添加/编辑弹窗 -->
 <div class="mask" id="mask"></div>
 <div class="sheet" id="sheet">
   <div class="handle"></div>
@@ -274,7 +319,7 @@
   </div>
 </div>
 
-<!-- Category Manage Sheet -->
+<!-- 分类管理弹窗 -->
 <div class="mask" id="catMask"></div>
 <div class="sheet" id="catSheet">
   <div class="handle"></div>
@@ -302,86 +347,279 @@
   </div>
 </div>
 
+<!-- 云端设置面板（GitHub 令牌） -->
+<div class="setup-panel" id="setupPanel">
+  <h2>☁️ 开启云端同步</h2>
+  <p class="sub">数据将保存在你自己的 GitHub 仓库，永久不丢、多手机同步</p>
+
+  <div class="step">
+    <h3>第 1 步：生成访问令牌（只需做一次）</h3>
+    <p>① 手机或电脑打开：<b>github.com → 右上角头像 → Settings</b></p>
+    <p>② 左侧菜单最底部点 <b>Developer settings</b></p>
+    <p>③ 点 <b>Personal access tokens → Fine-grained tokens</b></p>
+    <p>④ 点 <b>Generate new token</b>，填写：</p>
+    <p>· Token name：随便写，如"便利店同步"<br/>
+       · Expiration：选 <b>No expiration</b>（永不过期）<br/>
+       · Repository access：选 <b>Only select repositories</b> → 勾选 <b>convenience-store</b><br/>
+       · Repository permissions → <b>Contents</b>：选 <b>Read and write</b><br/>
+       · 拉到底点 <b>Generate token</b></p>
+    <p>⑤ 复制生成的令牌（<b>ghp_</b> 开头的一串字符）</p>
+  </div>
+
+  <div class="step">
+    <h3>第 2 步：粘贴令牌</h3>
+    <input id="cfg_token" placeholder="粘贴 ghp_ 开头的令牌" />
+    <button class="btn-go" id="cfgSaveBtn">💾 保存并开启同步</button>
+    <p id="cfgStatus" style="text-align:center;margin-top:10px;font-size:13px;"></p>
+  </div>
+
+  <button class="btn-ghost" id="cfgCloseBtn">稍后再说</button>
+</div>
+
+<input type="file" id="importFile" accept=".json" style="display:none" />
 <div class="toast" id="toast"></div>
 
 <script>
 (function(){
   "use strict";
-  var KEY_PROD = "super_mart_products_v1";
-  var KEY_CAT  = "super_mart_categories_v2";
-  var KEY_SET  = "super_mart_settings_v1";
-  var settings = load(KEY_SET, {warnDays:7});
-  var WARN_DAYS = settings.warnDays || 7; // 临期阈值（天），可在设置中自定义
 
-  function load(k, def){ try{ return JSON.parse(localStorage.getItem(k)) || def; }catch(e){ return def; } }
-  function save(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+  // ====== 常量 ======
+  var KEY_PROD  = "super_mart_products_v3";
+  var KEY_CAT   = "super_mart_categories_v3";
+  var KEY_SET   = "super_mart_settings_v3";
+  var KEY_TOKEN = "github_token_v1";
 
-  var products = load(KEY_PROD, []);
-  var categories = load(KEY_CAT, ["饮料","面包","方便面","酒","烟","卫生用品","其他生活用品"]);
+  var GITHUB = {
+    owner: "biansiqi0210",
+    repo:  "convenience-store",
+    path:  "data.json"
+  };
 
-  var state = { filterCat:"全部", keyword:"", editingId:null, imgData:null, editCat:null };
+  var DEFAULT_CATEGORIES = ["饮料","面包","方便面","酒","烟","卫生用品","其他生活用品"];
 
-  // ---------- helpers ----------
+  // ====== 状态 ======
+  var products   = [];
+  var categories = DEFAULT_CATEGORIES.slice();
+  var settings   = { warnDays: 7 };
+  var WARN_DAYS  = 7;
+
+  var state = {
+    filterCat: "全部",
+    keyword: "",
+    editingId: null,
+    imgData: null,
+    onlyExp: false,
+    syncStatus: "offline",
+    token: null,
+    cloudSha: null,       // GitHub 文件当前 sha
+    lastUpdatedAt: 0,     // 云端最后更新时间戳
+    pollTimer: null
+  };
+
+  // ====== DOM 工具 ======
   function $(id){ return document.getElementById(id); }
   function toast(msg){
     var t=$("toast"); t.textContent=msg; t.classList.add("show");
-    clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove("show");},1400);
+    clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove("show");},1800);
   }
-  function fmtMoney(n){
-    n = Number(n)||0;
-    return "¥" + (n%1===0 ? n : n.toFixed(2));
+  function fmtMoney(n){ n=Number(n)||0; return "¥"+(n%1===0?n:n.toFixed(2)); }
+  function escapeHtml(s){ return (s||"").replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+  function todayStr(){
+    var d=new Date(),m=("0"+(d.getMonth()+1)).slice(-2),day=("0"+d.getDate()).slice(-2);
+    return d.getFullYear()+"-"+m+"-"+day;
   }
   function daysBetween(a,b){
     if(!a||!b) return null;
-    var d1=new Date(a+"T00:00:00"), d2=new Date(b+"T00:00:00");
-    return Math.round((d2-d1)/86400000);
-  }
-  function todayStr(){
-    var d=new Date(); var m=("0"+(d.getMonth()+1)).slice(-2), day=("0"+d.getDate()).slice(-2);
-    return d.getFullYear()+"-"+m+"-"+day;
+    return Math.round((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/86400000);
   }
   function expStatus(exp){
     if(!exp) return {cls:"ok",txt:"未设置到期"};
-    var d = daysBetween(todayStr(), exp);
+    var d=daysBetween(todayStr(),exp);
     if(d<0) return {cls:"danger",txt:"已过期 "+Math.abs(d)+" 天"};
     if(d===0) return {cls:"danger",txt:"今天到期"};
     if(d<=WARN_DAYS) return {cls:"warn",txt:"临期 "+d+" 天"};
     return {cls:"ok",txt:"剩余 "+d+" 天"};
   }
-
-  // 由生产日期 + 保质期 自动计算到期时间
-  function computeExpiration(prod, val, unit){
-    if(!prod || !val || !unit) return "";
-    var d = new Date(prod+"T00:00:00");
-    val = Number(val);
+  var SHELF_LABEL={day:"天",month:"个月",year:"年"};
+  function computeExpiration(prod,val,unit){
+    if(!prod||!val||!unit) return "";
+    var d=new Date(prod+"T00:00:00"); val=Number(val);
     if(unit==="day") d.setDate(d.getDate()+val);
     else if(unit==="month") d.setMonth(d.getMonth()+val);
     else if(unit==="year") d.setFullYear(d.getFullYear()+val);
-    var m=("0"+(d.getMonth()+1)).slice(-2), day=("0"+d.getDate()).slice(-2);
+    var m=("0"+(d.getMonth()+1)).slice(-2),day=("0"+d.getDate()).slice(-2);
     return d.getFullYear()+"-"+m+"-"+day;
   }
   function autoFillExpiration(){
-    var prod=$("f_prod").value, val=$("f_shelf_val").value, unit=$("f_shelf_unit").value;
-    if(prod && val && unit){
-      $("f_exp").value = computeExpiration(prod, val, unit);
-    }
+    var p=$("f_prod").value,v=$("f_shelf_val").value,u=$("f_shelf_unit").value;
+    if(p&&v&&u) $("f_exp").value=computeExpiration(p,v,u);
   }
-  var SHELF_LABEL = {day:"天", month:"个月", year:"年"};
 
-  // ---------- render ----------
+  // ====== 本地存储 ======
+  function localLoad(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def; }catch(e){ return def; } }
+  function localSave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function loadFromLocal(){
+    products=localLoad(KEY_PROD,[]);
+    categories=localLoad(KEY_CAT,DEFAULT_CATEGORIES.slice());
+    settings=localLoad(KEY_SET,{warnDays:7});
+    WARN_DAYS=settings.warnDays||7;
+  }
+
+  // ====== 同步状态 ======
+  function updateSyncUI(){
+    var bar=$("syncBar"),txt=$("syncText");
+    bar.className="sync-bar "+state.syncStatus;
+    if(state.syncStatus==="synced") txt.textContent="✓ 已同步云端 · 多手机实时共享";
+    else if(state.syncStatus==="syncing") txt.textContent="⏳ 同步中...";
+    else if(state.syncStatus==="offline") txt.textContent="⚠️ 离线模式 · 数据暂存本地";
+    else if(state.syncStatus==="error") txt.textContent="✗ 同步失败 · 数据存本地（检查令牌）";
+  }
+
+  // ====== GitHub 云端同步 ======
+  function b64encode(str){
+    // UTF-8 安全 base64
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function b64decode(b64){
+    try{ return decodeURIComponent(escape(atob(b64))); }catch(e){ return ""; }
+  }
+
+  function ghHeaders(){
+    var h={"Content-Type":"application/json","Accept":"application/vnd.github+json"};
+    if(state.token) h["Authorization"]="Bearer "+state.token;
+    return h;
+  }
+
+  function ghApiUrl(){
+    return "https://api.github.com/repos/"+GITHUB.owner+"/"+GITHUB.repo+"/contents/"+GITHUB.path;
+  }
+
+  // 拉取云端数据
+  function pullFromCloud(){
+    if(!state.token) return Promise.reject("no token");
+    return fetch(ghApiUrl(),{headers:ghHeaders()})
+      .then(function(r){
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        return r.json();
+      })
+      .then(function(data){
+        state.cloudSha=data.sha;
+        var content=b64decode(data.content);
+        var parsed=JSON.parse(content);
+        if(parsed && parsed.updatedAt && parsed.updatedAt>state.lastUpdatedAt){
+          state.lastUpdatedAt=parsed.updatedAt;
+          if(parsed.products)  { products=parsed.products;   localSave(KEY_PROD,products); }
+          if(parsed.categories){ categories=parsed.categories; localSave(KEY_CAT,categories); }
+          if(parsed.settings)  { settings=parsed.settings;    localSave(KEY_SET,settings); WARN_DAYS=settings.warnDays||7; }
+          renderAll();
+        }
+        state.syncStatus="synced";
+        updateSyncUI();
+      });
+  }
+
+  // 推送到云端
+  function pushToCloud(){
+    if(!state.token) return;
+    state.syncStatus="syncing"; updateSyncUI();
+
+    var payload={
+      products:products,
+      categories:categories,
+      settings:settings,
+      updatedAt:Date.now(),
+      updatedBy:navigator.userAgent
+    };
+    var body={
+      message:"便利店数据更新 "+new Date().toLocaleString("zh-CN"),
+      content:b64encode(JSON.stringify(payload,null,2))
+    };
+    if(state.cloudSha) body.sha=state.cloudSha;  // 已存在则更新
+
+    fetch(ghApiUrl(),{
+      method:"PUT",
+      headers:ghHeaders(),
+      body:JSON.stringify(body)
+    }).then(function(r){
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      return r.json();
+    }).then(function(d){
+      state.cloudSha=d.content.sha;
+      state.lastUpdatedAt=payload.updatedAt;
+      state.syncStatus="synced";
+      updateSyncUI();
+    }).catch(function(err){
+      console.error("推送失败:",err);
+      state.syncStatus="error";
+      updateSyncUI();
+    });
+  }
+
+  // 统一保存：本地 + 云端
+  function syncSave(){
+    localSave(KEY_PROD,products);
+    localSave(KEY_CAT,categories);
+    localSave(KEY_SET,settings);
+    if(state.token) pushToCloud();
+  }
+
+  // 轮询（准实时同步）
+  function startPolling(){
+    if(state.pollTimer) clearInterval(state.pollTimer);
+    state.pollTimer=setInterval(function(){
+      if(state.token && navigator.onLine){
+        pullFromCloud().catch(function(e){
+          // 令牌错误或网络问题
+          if(String(e).indexOf("401")>=0 || String(e).indexOf("403")>=0){
+            state.syncStatus="error"; updateSyncUI();
+          }
+        });
+      }
+    },8000);
+  }
+
+  // ====== 导出/导入 ======
+  function exportData(){
+    var data={version:"3.0",exportedAt:new Date().toISOString(),products:products,categories:categories,settings:settings};
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a");
+    a.href=url; a.download="新朋便利店备份_"+todayStr().replace(/-/g,"")+".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast("✅ 备份已导出");
+  }
+  function importData(file){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var data=JSON.parse(e.target.result);
+        if(!data.products){ toast("❌ 文件格式不正确"); return; }
+        if(!confirm("导入将覆盖当前所有数据！\n\n备份含 "+data.products.length+" 个商品\n\n确定导入？")) return;
+        products=data.products||[];
+        categories=data.categories||DEFAULT_CATEGORIES.slice();
+        settings=data.settings||{warnDays:7};
+        WARN_DAYS=settings.warnDays||7;
+        syncSave(); renderAll();
+        toast("✅ 导入 "+products.length+" 个商品");
+      }catch(err){ toast("❌ 文件解析失败"); }
+    };
+    reader.readAsText(file);
+  }
+
+  // ====== 渲染 ======
   function renderCats(){
     var box=$("cats"); box.innerHTML="";
-    var all=["全部"].concat(categories);
-    all.forEach(function(c){
-      var cnt = c==="全部" ? products.length : products.filter(function(p){return p.category===c;}).length;
+    ["全部"].concat(categories).forEach(function(c){
+      var cnt=c==="全部"?products.length:products.filter(function(p){return p.category===c;}).length;
       var el=document.createElement("div");
       el.className="chip"+(state.filterCat===c?" active":"");
-      el.innerHTML = c + '<span class="cnt">'+cnt+'</span>';
+      el.innerHTML=c+'<span class="cnt">'+cnt+'</span>';
       el.onclick=function(){ state.filterCat=c; renderCats(); renderList(); };
       box.appendChild(el);
     });
-    // 仅看临期 专用筛选
-    var expCnt = products.filter(function(p){ return expStatus(p.expirationDate).cls!=="ok"; }).length;
+    var expCnt=products.filter(function(p){return expStatus(p.expirationDate).cls!=="ok";}).length;
     var ec=document.createElement("div");
     ec.className="chip"+(state.onlyExp?" active":"");
     ec.style.cssText="background:"+(state.onlyExp?"#e54d42":"#fff")+";color:"+(state.onlyExp?"#fff":"#e54d42")+";border-color:"+(state.onlyExp?"#e54d42":"#f5c6c2")+";font-weight:600;";
@@ -389,37 +627,30 @@
     ec.onclick=function(){ state.onlyExp=!state.onlyExp; renderCats(); renderList(); };
     box.appendChild(ec);
   }
-
   function renderList(){
     var list=$("list"); list.innerHTML="";
     var kw=state.keyword.trim().toLowerCase();
-    var items = products.filter(function(p){
-      if(state.filterCat!=="全部" && p.category!==state.filterCat) return false;
-      if(state.onlyExp && expStatus(p.expirationDate).cls==="ok") return false;
-      if(kw){
-        var hay=(p.name+" "+(p.category||"")).toLowerCase();
-        if(hay.indexOf(kw)<0) return false;
-      }
+    var items=products.filter(function(p){
+      if(state.filterCat!=="全部"&&p.category!==state.filterCat) return false;
+      if(state.onlyExp&&expStatus(p.expirationDate).cls==="ok") return false;
+      if(kw){ var hay=(p.name+" "+(p.category||"")).toLowerCase(); if(hay.indexOf(kw)<0) return false; }
       return true;
     });
-    // 临期/过期优先排序
     items.sort(function(a,b){
-      var ea=expStatus(a.expirationDate).cls, eb=expStatus(b.expirationDate).cls;
-      var rank={danger:0,warn:1,ok:2};
-      if(rank[ea]!==rank[eb]) return rank[ea]-rank[eb];
+      var r={danger:0,warn:1,ok:2};
+      var ra=r[expStatus(a.expirationDate).cls],rb=r[expStatus(b.expirationDate).cls];
+      if(ra!==rb) return ra-rb;
       return (b.createdAt||0)-(a.createdAt||0);
     });
-
     if(items.length===0){
       list.innerHTML='<div class="empty"><div class="big">📦</div>暂无商品<br/>点击下方「＋ 添加商品」开始录入</div>';
-    } else {
+    }else{
       items.forEach(function(p){
         var st=expStatus(p.expirationDate);
-        var profit = (Number(p.salePrice)||0)-(Number(p.purchasePrice)||0);
-        var card=document.createElement("div");
-        card.className="card";
-        var imgHtml = p.image ? '<img src="'+p.image+'" alt="">' : '📦';
-        card.innerHTML =
+        var profit=(Number(p.salePrice)||0)-(Number(p.purchasePrice)||0);
+        var card=document.createElement("div"); card.className="card";
+        var imgHtml=p.image?'<img src="'+p.image+'" alt="">':'📦';
+        card.innerHTML=
           '<div class="img">'+imgHtml+'</div>'+
           '<div class="info">'+
             '<div class="name">'+escapeHtml(p.name)+' <span class="cat-tag">'+escapeHtml(p.category||"")+'</span></div>'+
@@ -436,54 +667,36 @@
             '</div>'+
             '<span class="exp '+st.cls+'">'+st.txt+'</span>'+
           '</div>'+
-          '<div class="acts">'+
-            '<button data-edit="'+p.id+'">✏️</button>'+
-            '<button data-del="'+p.id+'">🗑️</button>'+
-          '</div>';
+          '<div class="acts"><button data-edit="'+p.id+'">✏️</button><button data-del="'+p.id+'">🗑️</button></div>';
         list.appendChild(card);
       });
     }
-    // bind actions
-    list.querySelectorAll("[data-edit]").forEach(function(b){
-      b.onclick=function(){ openSheet(b.getAttribute("data-edit")); };
-    });
+    list.querySelectorAll("[data-edit]").forEach(function(b){ b.onclick=function(){ openSheet(b.getAttribute("data-edit")); }; });
     list.querySelectorAll("[data-del]").forEach(function(b){
       b.onclick=function(){
         var id=b.getAttribute("data-del");
-        if(confirm("确定删除该商品？")){
-          products=products.filter(function(p){return p.id!==id;});
-          save(KEY_PROD,products); renderAll(); toast("已删除");
-        }
+        if(confirm("确定删除该商品？")){ products=products.filter(function(p){return p.id!==id;}); syncSave(); renderAll(); toast("已删除"); }
       };
     });
     renderStats();
   }
-
   function renderStats(){
     $("statCount").textContent=products.length;
-    var val=0; products.forEach(function(p){ val += Number(p.salePrice)||0; });
+    var val=0; products.forEach(function(p){ val+=Number(p.salePrice)||0; });
     $("statValue").textContent=fmtMoney(val);
-    var exp=products.filter(function(p){ return expStatus(p.expirationDate).cls!=="ok"; }).length;
-    $("statExp").textContent=exp;
+    $("statExp").textContent=products.filter(function(p){return expStatus(p.expirationDate).cls!=="ok";}).length;
   }
-
   function renderAll(){ renderCats(); renderList(); }
 
-  function escapeHtml(s){ return (s||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
-
-  // ---------- sheet ----------
+  // ====== 弹窗 ======
   function fillCatSelect(){
     var sel=$("f_cat"); sel.innerHTML="";
-    categories.forEach(function(c){
-      var o=document.createElement("option"); o.value=c; o.textContent=c; sel.appendChild(o);
-    });
+    categories.forEach(function(c){ var o=document.createElement("option"); o.value=c; o.textContent=c; sel.appendChild(o); });
   }
   function openSheet(id){
-    state.editingId=id||null; state.imgData=null;
-    fillCatSelect();
+    state.editingId=id||null; state.imgData=null; fillCatSelect();
     if(id){
-      var p=products.find(function(x){return x.id===id;});
-      if(!p) return;
+      var p=products.find(function(x){return x.id===id;}); if(!p) return;
       $("sheetTitle").textContent="编辑商品";
       $("f_name").value=p.name; $("f_cat").value=p.category;
       $("f_sale").value=p.salePrice; $("f_cost").value=p.purchasePrice;
@@ -491,8 +704,8 @@
       $("f_prod").value=p.productionDate||""; $("f_exp").value=p.expirationDate||"";
       $("f_shelf_val").value=p.shelfValue||""; $("f_shelf_unit").value=p.shelfUnit||"day";
       state.imgData=p.image||null;
-      $("imgPrev").innerHTML = p.image ? '<img src="'+p.image+'">' : '📷';
-    } else {
+      $("imgPrev").innerHTML=p.image?'<img src="'+p.image+'">':'📷';
+    }else{
       $("sheetTitle").textContent="添加商品";
       $("f_name").value=""; $("f_cat").selectedIndex=0;
       $("f_sale").value=""; $("f_cost").value=""; $("f_custom").value="";
@@ -500,21 +713,15 @@
       $("f_shelf_val").value=""; $("f_shelf_unit").value="day";
       state.imgData=null; $("imgPrev").innerHTML='📷';
     }
-    $("mask").classList.add("show");
-    $("sheet").classList.add("show");
+    $("mask").classList.add("show"); $("sheet").classList.add("show");
   }
-  function closeSheet(){
-    $("mask").classList.remove("show");
-    $("sheet").classList.remove("show");
-  }
+  function closeSheet(){ $("mask").classList.remove("show"); $("sheet").classList.remove("show"); }
   function saveItem(){
-    var name=$("f_name").value.trim();
-    var cat=$("f_cat").value;
-    var sale=$("f_sale").value;
+    var name=$("f_name").value.trim(), cat=$("f_cat").value, sale=$("f_sale").value;
     if(!name){ toast("请填写商品名称"); return; }
     if(sale===""||isNaN(Number(sale))){ toast("请填写有效售价"); return; }
     var data={
-      name:name, category:cat,
+      name:name,category:cat,
       salePrice:Number(sale),
       purchasePrice:Number($("f_cost").value)||0,
       customPrice:Number($("f_custom").value)||0,
@@ -526,19 +733,18 @@
     };
     if(state.editingId){
       var i=products.findIndex(function(p){return p.id===state.editingId;});
-      if(i>=0){ products[i]=Object.assign({},products[i],data); }
+      if(i>=0) products[i]=Object.assign({},products[i],data);
       toast("已保存");
-    } else {
+    }else{
       data.id="p"+Date.now()+Math.floor(Math.random()*1000);
       data.createdAt=Date.now();
       products.push(data);
       toast("已添加");
     }
-    save(KEY_PROD,products);
-    closeSheet(); renderAll();
+    syncSave(); closeSheet(); renderAll();
   }
 
-  // image handling
+  // 图片
   $("pickImg").onclick=function(){ $("fileInput").click(); };
   $("fileInput").onchange=function(e){
     var f=e.target.files[0]; if(!f) return;
@@ -547,13 +753,11 @@
     r.onload=function(ev){ state.imgData=ev.target.result; $("imgPrev").innerHTML='<img src="'+state.imgData+'">'; };
     r.readAsDataURL(f);
   };
+  $("f_prod").addEventListener("change",autoFillExpiration);
+  $("f_shelf_val").addEventListener("change",autoFillExpiration);
+  $("f_shelf_unit").addEventListener("change",autoFillExpiration);
 
-  // 自动生成到期时间（生产日期 + 保质期）
-  $("f_prod").addEventListener("change", autoFillExpiration);
-  $("f_shelf_val").addEventListener("change", autoFillExpiration);
-  $("f_shelf_unit").addEventListener("change", autoFillExpiration);
-
-  // category manage
+  // ====== 分类管理 ======
   function renderCatManage(){
     var box=$("catList"); box.innerHTML="";
     categories.forEach(function(c){
@@ -565,16 +769,15 @@
       del.onclick=function(){
         if(products.some(function(p){return p.category===c;})){ toast("该分类下还有商品"); return; }
         categories=categories.filter(function(x){return x!==c;});
-        save(KEY_CAT,categories); renderCatManage(); renderAll();
+        syncSave(); renderCatManage(); renderAll();
       };
-      el.appendChild(del);
-      box.appendChild(el);
+      el.appendChild(del); box.appendChild(el);
     });
   }
   function openCat(){ renderCatManage(); $("f_warn").value=WARN_DAYS; $("catMask").classList.add("show"); $("catSheet").classList.add("show"); }
   function closeCat(){ $("catMask").classList.remove("show"); $("catSheet").classList.remove("show"); }
 
-  // events
+  // ====== 事件 ======
   $("addBtn").onclick=function(){ openSheet(null); };
   $("hdrAddBtn").onclick=function(){ openSheet(null); };
   $("cancelBtn").onclick=closeSheet;
@@ -583,40 +786,77 @@
   $("catBtn").onclick=openCat;
   $("catCancel").onclick=closeCat;
   $("catMask").onclick=closeCat;
+
+  $("dataBtn").onclick=function(){ var tb=$("toolsBar"); tb.style.display=tb.style.display==="none"?"flex":"none"; };
+  $("exportBtn").onclick=exportData;
+  $("importBtn").onclick=function(){ $("importFile").click(); };
+  $("importFile").onchange=function(e){ if(e.target.files[0]) importData(e.target.files[0]); e.target.value=""; };
+  $("setupBtn").onclick=function(){ $("setupPanel").classList.add("show"); };
+
+  $("cfgCloseBtn").onclick=function(){ $("setupPanel").classList.remove("show"); };
+  $("cfgSaveBtn").onclick=function(){
+    var token=$("cfg_token").value.trim();
+    var statusEl=$("cfgStatus");
+    if(!token){ statusEl.textContent="❌ 请粘贴令牌"; statusEl.style.color="var(--red)"; return; }
+    state.token=token;
+    localSave(KEY_TOKEN,token);
+    statusEl.textContent="⏳ 正在连接云端..."; statusEl.style.color="var(--orange)";
+
+    // 测试连接并拉取数据
+    state.syncStatus="syncing"; updateSyncUI();
+    pullFromCloud().then(function(){
+      statusEl.textContent="✅ 同步成功！所有手机将自动共享数据";
+      statusEl.style.color="var(--green)";
+      pushToCloud(); // 把本地数据推上去
+      setTimeout(function(){ $("setupPanel").classList.remove("show"); toast("✅ 云端同步已开启"); },1500);
+    }).catch(function(err){
+      console.error(err);
+      statusEl.textContent="❌ 连接失败，请检查令牌权限（需 Contents: Read and write）";
+      statusEl.style.color="var(--red)";
+      state.syncStatus="error"; updateSyncUI();
+    });
+    startPolling();
+  };
+
+  // 回填已保存令牌
+  var savedToken=localLoad(KEY_TOKEN,null);
+  if(savedToken){ $("cfg_token").value=savedToken; }
+
   $("saveWarnBtn").onclick=function(){
     var d=Number($("f_warn").value)||7; if(d<1) d=1;
-    settings.warnDays=d; save(KEY_SET,settings); WARN_DAYS=d;
-    renderAll(); toast("临期阈值已设为 "+d+" 天");
+    settings.warnDays=d; WARN_DAYS=d; syncSave(); renderAll(); toast("临期阈值 "+d+" 天");
   };
-  $("statExpBox").onclick=function(){
-    state.onlyExp=!state.onlyExp; renderCats(); renderList();
-    toast(state.onlyExp?"已筛选：仅看临期/过期":"已显示全部商品");
-  };
+  $("statExpBox").onclick=function(){ state.onlyExp=!state.onlyExp; renderCats(); renderList(); toast(state.onlyExp?"仅看临期/过期":"显示全部"); };
   $("addCatBtn").onclick=function(){
     var v=$("newCat").value.trim();
     if(!v){ toast("请输入分类名"); return; }
     if(categories.indexOf(v)>=0){ toast("分类已存在"); return; }
-    categories.push(v); save(KEY_CAT,categories);
-    $("newCat").value=""; renderCatManage(); renderAll(); toast("已添加分类");
+    categories.push(v); syncSave(); $("newCat").value=""; renderCatManage(); renderAll(); toast("已添加分类");
   };
   var searchT;
   $("search").oninput=function(e){
     state.keyword=e.target.value;
-    $("clearSearch").style.display = state.keyword?"block":"none";
+    $("clearSearch").style.display=state.keyword?"block":"none";
     clearTimeout(searchT); searchT=setTimeout(renderList,120);
   };
   $("clearSearch").onclick=function(){ $("search").value=""; state.keyword=""; this.style.display="none"; renderList(); };
 
-  // init
+  // ====== 初始化 ======
+  loadFromLocal();
+  if(savedToken){
+    state.token=savedToken;
+    state.syncStatus="syncing"; updateSyncUI();
+    pullFromCloud().catch(function(){ state.syncStatus="error"; updateSyncUI(); });
+    startPolling();
+  }else{
+    updateSyncUI();
+  }
   renderAll();
-})();
 
-// 注册 Service Worker（支持离线 & 安装到手机主屏）
-if("serviceWorker" in navigator){
-  window.addEventListener("load", function(){
-    navigator.serviceWorker.register("sw.js").catch(function(e){ console.log("SW 注册失败:", e); });
-  });
-}
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(e){ console.log("SW:",e); }); });
+  }
+})();
 </script>
 </body>
 </html>
