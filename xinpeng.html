@@ -106,7 +106,7 @@
     padding:12px;margin-bottom:12px;display:flex;gap:12px;position:relative;
   }
   .card .img{
-    width:74px;height:74px;border-radius:10px;object-fit:cover;flex:none;background:#f0f0f0;
+    width:96px;height:96px;border-radius:10px;object-fit:cover;flex:none;background:#f0f0f0;
     display:flex;align-items:center;justify-content:center;color:#bbb;font-size:26px;overflow:hidden;
   }
   .card .img img{width:100%;height:100%;object-fit:cover;}
@@ -162,7 +162,7 @@
   .field .row > *{flex:1;}
   .img-pick{display:flex;align-items:center;gap:12px;}
   .img-pick .preview{
-    width:64px;height:64px;border-radius:10px;background:#f0f0f0;overflow:hidden;flex:none;
+    width:80px;height:80px;border-radius:10px;background:#f0f0f0;overflow:hidden;flex:none;
     display:flex;align-items:center;justify-content:center;color:#bbb;font-size:24px;border:1px dashed #ddd;
   }
   .img-pick .preview img{width:100%;height:100%;object-fit:cover;}
@@ -745,13 +745,36 @@
   }
 
   // 图片
+  // 图片压缩：保持高清（最长边 1600px，JPEG 质量 0.9），避免原图过大撑爆云端
+  function compressImage(file, maxEdge, quality, cb){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var w=img.width, h=img.height;
+        var scale=Math.min(1, maxEdge/Math.max(w,h));
+        var cw=Math.round(w*scale), ch=Math.round(h*scale);
+        var canvas=document.createElement("canvas");
+        canvas.width=cw; canvas.height=ch;
+        var ctx=canvas.getContext("2d");
+        ctx.drawImage(img,0,0,cw,ch);
+        cb(canvas.toDataURL("image/jpeg",quality));
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   $("pickImg").onclick=function(){ $("fileInput").click(); };
   $("fileInput").onchange=function(e){
     var f=e.target.files[0]; if(!f) return;
-    if(f.size>2*1024*1024){ toast("图片请小于 2MB"); return; }
-    var r=new FileReader();
-    r.onload=function(ev){ state.imgData=ev.target.result; $("imgPrev").innerHTML='<img src="'+state.imgData+'">'; };
-    r.readAsDataURL(f);
+    if(f.size>8*1024*1024){ toast("图片请小于 8MB"); return; }
+    toast("正在处理高清图片…");
+    compressImage(f, 1600, 0.9, function(dataUrl){
+      state.imgData=dataUrl;
+      $("imgPrev").innerHTML='<img src="'+state.imgData+'">';
+      toast("✅ 图片已就绪");
+    });
   };
   $("f_prod").addEventListener("change",autoFillExpiration);
   $("f_shelf_val").addEventListener("change",autoFillExpiration);
