@@ -352,28 +352,33 @@
   </div>
 </div>
 
-<!-- 云端设置面板（GitHub 令牌） -->
+<!-- 云端设置面板（码云 Gitee 令牌） -->
 <div class="setup-panel" id="setupPanel">
   <h2>☁️ 开启云端同步</h2>
-  <p class="sub">数据将保存在你自己的 GitHub 仓库，永久不丢、多手机同步</p>
+  <p class="sub">数据保存在码云(Gitee)，国内访问快、永久不丢、多手机实时同步</p>
 
   <div class="step">
-    <h3>第 1 步：生成访问令牌（只需做一次）</h3>
-    <p>① 手机或电脑打开：<b>github.com → 右上角头像 → Settings</b></p>
-    <p>② 左侧菜单最底部点 <b>Developer settings</b></p>
-    <p>③ 点 <b>Personal access tokens → Fine-grained tokens</b></p>
-    <p>④ 点 <b>Generate new token</b>，填写：</p>
-    <p>· Token name：随便写，如"便利店同步"<br/>
-       · Expiration：选 <b>No expiration</b>（永不过期）<br/>
-       · Repository access：选 <b>Only select repositories</b> → 勾选 <b>convenience-store</b><br/>
-       · Repository permissions → <b>Contents</b>：选 <b>Read and write</b><br/>
-       · 拉到底点 <b>Generate token</b></p>
-    <p>⑤ 复制生成的令牌（<b>ghp_</b> 开头的一串字符）</p>
+    <h3>第 1 步：注册码云（没有账号的话）</h3>
+    <p>手机浏览器打开：<b><a href="https://gitee.com/signup" target="_blank" style="color:#2a9488">gitee.com/signup</a></b></p>
+    <p>用手机号注册，免费，1 分钟搞定</p>
   </div>
 
   <div class="step">
-    <h3>第 2 步：粘贴令牌</h3>
-    <input id="cfg_token" placeholder="粘贴 ghp_ 开头的令牌" />
+    <h3>第 2 步：生成私人令牌</h3>
+    <p>① 打开 <b><a href="https://gitee.com/profile/personal_access_tokens/new" target="_blank" style="color:#2a9488">gitee.com → 设置 → 私人令牌</a></b></p>
+    <p>② 填写：</p>
+    <p>· 描述：随便写，如"便利店数据"</p>
+    <p>· 权限：勾选 <b>projects</b>（项目读写权限）</p>
+    <p>③ 点 <b>提交</b></p>
+    <p>④ 复制生成的令牌（一串字母数字字符）</p>
+  </div>
+
+  <div class="step">
+    <h3>第 3 步：填写信息并连接</h3>
+    <label style="font-size:13px;color:#555;">你的码云用户名</label>
+    <input id="cfg_owner" placeholder="你在 gitee.com 的用户名" />
+    <label style="font-size:13px;color:#555;">私人令牌</label>
+    <input id="cfg_token" placeholder="粘贴刚才复制的令牌" />
     <button class="btn-go" id="cfgSaveBtn">💾 保存并开启同步</button>
     <p id="cfgStatus" style="text-align:center;margin-top:10px;font-size:13px;"></p>
   </div>
@@ -392,11 +397,13 @@
   var KEY_PROD  = "super_mart_products_v3";
   var KEY_CAT   = "super_mart_categories_v3";
   var KEY_SET   = "super_mart_settings_v3";
-  var KEY_TOKEN = "github_token_v1";
+  var KEY_TOKEN = "gitee_token_v1";
 
-  var GITHUB = {
-    owner: "biansiqi0210",
-    repo:  "convenience-store",
+  // 码云(Gitee) 配置 — 国内可访问，替代 GitHub
+  var CLOUD = {
+    provider: "gitee",       // "gitee" | "github"
+    owner: "",               // 你的码云用户名（填入令牌后自动获取）
+    repo:  "xinpeng-data",   // 数据仓库名
     path:  "data.json"
   };
 
@@ -481,83 +488,90 @@
     else if(state.syncStatus==="error") txt.textContent="✗ 同步失败 · 数据存本地（检查令牌）";
   }
 
-  // ====== GitHub 云端同步 ======
-  function b64encode(str){
-    // UTF-8 安全 base64
-    return btoa(unescape(encodeURIComponent(str)));
-  }
-  function b64decode(b64){
-    try{ return decodeURIComponent(escape(atob(b64))); }catch(e){ return ""; }
+  // ====== 码云(Gitee) 云端同步（国内可访问） ======
+  function b64encode(str){ return btoa(unescape(encodeURIComponent(str))); }
+  function b64decode(b64){ try{ return decodeURIComponent(escape(atob(b64))); }catch(e){ return ""; } }
+
+  // Gitee API v5 地址
+  function cloudApiUrl(path){
+    var base = CLOUD.provider==="gitee"
+      ? "https://gitee.com/api/v5/repos/"+CLOUD.owner+"/"+CLOUD.repo
+      : "https://api.github.com/repos/"+CLOUD.owner+"/"+CLOUD.repo;
+    return base + "/contents/" + (path||CLOUD.path);
   }
 
-  function ghHeaders(){
-    var h={"Content-Type":"application/json","Accept":"application/vnd.github+json"};
-    if(state.token) h["Authorization"]="Bearer "+state.token;
+  function cloudHeaders(){
+    var h={"Content-Type":"application/json"};
+    if(CLOUD.provider==="gitee"){
+      // Gitee 用 access_token 参数或 header 都行
+    } else {
+      if(state.token) h["Authorization"]="Bearer "+state.token;
+    }
     return h;
   }
 
-  function ghApiUrl(){
-    return "https://api.github.com/repos/"+GITHUB.owner+"/"+GITHUB.repo+"/contents/"+GITHUB.path;
+  // 构建带 token 的 URL（Gitee 用 query param）
+  function cloudFetch(url, opts){
+    if(CLOUD.provider==="gitee" && state.token){
+      url += (url.indexOf("?")>-1?"&":"?") + "access_token="+encodeURIComponent(state.token);
+    }
+    return fetch(url, Object.assign({},opts,{headers:Object.assign({},cloudHeaders(),opts&&opts.headers||{})}));
   }
 
   // 拉取云端数据
   function pullFromCloud(){
-    if(!state.token) return Promise.reject("no token");
-    return fetch(ghApiUrl(),{headers:ghHeaders()})
+    if(!state.token || !CLOUD.owner) return Promise.reject("no token or owner");
+    state.syncStatus="syncing"; updateSyncUI();
+    return cloudFetch(cloudApiUrl())
       .then(function(r){
         if(!r.ok) throw new Error("HTTP "+r.status);
         return r.json();
       })
       .then(function(data){
-        state.cloudSha=data.sha;
-        var content=b64decode(data.content);
-        var parsed=JSON.parse(content);
+        // Gitee 和 GitHub 返回格式略有不同，统一处理
+        state.cloudSha = data.sha || data.content.sha || "";
+        var rawContent = data.content || "";
+        var content = b64decode(rawContent);
+        var parsed = JSON.parse(content);
         if(parsed && parsed.updatedAt && parsed.updatedAt>state.lastUpdatedAt){
-          state.lastUpdatedAt=parsed.updatedAt;
+          state.lastUpdatedAt = parsed.updatedAt;
           if(parsed.products)  { products=parsed.products;   localSave(KEY_PROD,products); }
           if(parsed.categories){ categories=parsed.categories; localSave(KEY_CAT,categories); }
           if(parsed.settings)  { settings=parsed.settings;    localSave(KEY_SET,settings); WARN_DAYS=settings.warnDays||7; }
           renderAll();
         }
-        state.syncStatus="synced";
-        updateSyncUI();
+        state.syncStatus="synced"; updateSyncUI();
       });
   }
 
   // 推送到云端
   function pushToCloud(){
-    if(!state.token) return;
+    if(!state.token || !CLOUD.owner) return;
     state.syncStatus="syncing"; updateSyncUI();
 
     var payload={
-      products:products,
-      categories:categories,
-      settings:settings,
-      updatedAt:Date.now(),
-      updatedBy:navigator.userAgent
+      products:products, categories:categories, settings:settings,
+      updatedAt:Date.now(), updatedBy:navigator.userAgent
     };
     var body={
       message:"便利店数据更新 "+new Date().toLocaleString("zh-CN"),
       content:b64encode(JSON.stringify(payload,null,2))
     };
-    if(state.cloudSha) body.sha=state.cloudSha;  // 已存在则更新
+    if(state.cloudSha) body.sha=state.cloudSha;
 
-    fetch(ghApiUrl(),{
+    cloudFetch(cloudApiUrl(), {
       method:"PUT",
-      headers:ghHeaders(),
       body:JSON.stringify(body)
     }).then(function(r){
       if(!r.ok) throw new Error("HTTP "+r.status);
       return r.json();
     }).then(function(d){
-      state.cloudSha=d.content.sha;
-      state.lastUpdatedAt=payload.updatedAt;
-      state.syncStatus="synced";
-      updateSyncUI();
+      state.cloudSha = d.sha || (d.content&&d.content.sha) || "";
+      state.lastUpdatedAt = payload.updatedAt;
+      state.syncStatus="synced"; updateSyncUI();
     }).catch(function(err){
       console.error("推送失败:",err);
-      state.syncStatus="error";
-      updateSyncUI();
+      state.syncStatus="error"; updateSyncUI();
     });
   }
 
@@ -827,32 +841,38 @@
 
   $("cfgCloseBtn").onclick=function(){ $("setupPanel").classList.remove("show"); };
   $("cfgSaveBtn").onclick=function(){
+    var owner=$("cfg_owner").value.trim();
     var token=$("cfg_token").value.trim();
     var statusEl=$("cfgStatus");
-    if(!token){ statusEl.textContent="❌ 请粘贴令牌"; statusEl.style.color="var(--red)"; return; }
-    state.token=token;
-    localSave(KEY_TOKEN,token);
-    statusEl.textContent="⏳ 正在连接云端..."; statusEl.style.color="var(--orange)";
+    if(!owner){ statusEl.textContent="❌ 请填写码云用户名"; statusEl.style.color="var(--red)"; return; }
+    if(!token){ statusEl.textContent="❌ 请粘贴私人令牌"; statusEl.style.color="var(--red)"; return; }
 
-    // 测试连接并拉取数据
+    CLOUD.owner = owner;
+    state.token = token;
+    localSave(KEY_TOKEN, {owner: owner, token: token});
+    statusEl.textContent="⏳ 正在连接码云云端..."; statusEl.style.color="var(--orange)";
+
     state.syncStatus="syncing"; updateSyncUI();
     pullFromCloud().then(function(){
-      statusEl.textContent="✅ 同步成功！所有手机将自动共享数据";
+      statusEl.textContent="✅ 连接成功！数据将实时同步到所有手机";
       statusEl.style.color="var(--green)";
-      pushToCloud(); // 把本地数据推上去
-      setTimeout(function(){ $("setupPanel").classList.remove("show"); toast("✅ 云端同步已开启"); },1500);
+      pushToCloud();
+      setTimeout(function(){ $("setupPanel").classList.remove("show"); toast("✅ 码云云端同步已开启"); },1500);
     }).catch(function(err){
       console.error(err);
-      statusEl.textContent="❌ 连接失败，请检查令牌权限（需 Contents: Read and write）";
+      statusEl.textContent="❌ 连接失败，请检查用户名和令牌是否正确";
       statusEl.style.color="var(--red)";
       state.syncStatus="error"; updateSyncUI();
     });
     startPolling();
   };
 
-  // 回填已保存令牌
-  var savedToken=localLoad(KEY_TOKEN,null);
-  if(savedToken){ $("cfg_token").value=savedToken; }
+  // 回填已保存的配置
+  var savedCfg=localLoad(KEY_TOKEN,null);
+  if(savedCfg){
+    if(savedCfg.owner) $("cfg_owner").value=savedCfg.owner;
+    if(savedCfg.token) $("cfg_token").value=savedCfg.token;
+  }
 
   $("saveWarnBtn").onclick=function(){
     var d=Number($("f_warn").value)||7; if(d<1) d=1;
@@ -875,8 +895,9 @@
 
   // ====== 初始化 ======
   loadFromLocal();
-  if(savedToken){
-    state.token=savedToken;
+  if(savedCfg && savedCfg.token && savedCfg.owner){
+    CLOUD.owner = savedCfg.owner;
+    state.token = savedCfg.token;
     state.syncStatus="syncing"; updateSyncUI();
     pullFromCloud().catch(function(){ state.syncStatus="error"; updateSyncUI(); });
     startPolling();
