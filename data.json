@@ -7,11 +7,12 @@
     "酒",
     "烟",
     "卫生用品",
-    "其他生活用品"
+    "其他生活用品",
+    "调料"
   ],
   "settings": {
     "warnDays": 7
   },
-  "updatedAt": 1785550303869,
-  "updatedBy": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36"
+  "updatedAt": 1785550355767,
+  "updatedBy": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
 }
